@@ -1,10 +1,11 @@
 {
-  "name": "s-inputs",
-  "version": "0.1.0",
-  "private": true,
+  "name": "@solution5520/s-input",
+  "version": "0.1.1",
+  "main": "./dist/s-inputs.common.js",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
+    "build-lib": "vue-cli-service build --target lib --name s-inputs src/main.js",
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
@@ -38,5 +39,20 @@
     "> 1%",
     "last 2 versions",
     "not dead"
-  ]
+  ],
+  "description": "## Project setup ``` npm install ```",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CraftmanSam/s-inputs.git"
+  },
+  "keywords": [
+    "framework",
+    "inputs"
+  ],
+  "author": "Sam Larose",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/CraftmanSam/s-inputs/issues"
+  },
+  "homepage": "https://github.com/CraftmanSam/s-inputs#readme"
 }
