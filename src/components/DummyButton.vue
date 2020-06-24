@@ -22,7 +22,7 @@ export default {
   },
   methods: {
     increment () {
-      this.count += 1
+      this.count += 1 
     }
   }
 }

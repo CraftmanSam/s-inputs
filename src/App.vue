@@ -6,7 +6,7 @@
 </template>
 
 <script>
-import DummyButton from './components/DummyButton.vue'
+import DummyButton from '@/components/DummyButton.vue'
 
 export default {
   name: 'App',
