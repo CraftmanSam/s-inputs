@@ -1,4 +1,4 @@
-import SInputs from '@/components'
+import SInputs from './components'
 const version = '__VERSION__'
 
 const install = Vue => {
