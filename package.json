@@ -1,6 +1,6 @@
 {
   "name": "@solution5520/s-inputs",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Inputs components with built-in logic for different data type.",
   "author": "Sam Larose",
   "scripts": {
