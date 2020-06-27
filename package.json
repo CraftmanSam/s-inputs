@@ -1,5 +1,5 @@
 {
-  "name": "@solution5520/s-input",
+  "name": "@solution5520/s-inputs",
   "version": "0.1.1",
   "description": "Inputs components with built-in logic for different data type.",
   "author": "Sam Larose",
@@ -80,5 +80,8 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/CraftmanSam/s-inputs.git"
+  },
+  "directories": {
+    "test": "tests"
   }
 }
