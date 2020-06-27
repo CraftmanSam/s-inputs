@@ -6,7 +6,7 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "build-lib": "vue-cli-service build --target lib --name s-inputs ./src/components/index.js",
+    "build-lib": "vue-cli-service build --target lib --name s-inputs ./src/index.js",
     "release": "np",
     "test:unit": "vue-cli-service test:unit",
     "test:unit:watch": "vue-cli-service test:unit --watch",
