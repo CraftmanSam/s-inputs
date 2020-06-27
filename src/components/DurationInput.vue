@@ -3,7 +3,7 @@
 </template>
 
 <script>
-import TextInput from "@/components/TextInput.vue";
+import TextInput from "./TextInput.vue";
 
 export default {
   name: "DurationInput",
