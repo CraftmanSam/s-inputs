@@ -1,5 +1,5 @@
 <template>
-  <input ref="input" :value="text" v-bind="$attrs" v-on="listeners" />
+  <input-facade ref="input" :value="text" v-bind="$attrs" v-on="listeners" />
 </template>
 
 <script>
@@ -23,9 +23,7 @@ export default {
       let vm = this;
       return {
         ...this.$listeners,
-        input(event) {
-          let value = event.target.value;
-
+        input(value) {
           vm.text = value;
           vm.$emit("input", value);
         }
@@ -34,7 +32,7 @@ export default {
   },
   methods: {
     focus() {
-      this.$refs.input.focus();
+      this.$refs.input.$el.focus();
     },
     refresh() {
       this.text = this.value;

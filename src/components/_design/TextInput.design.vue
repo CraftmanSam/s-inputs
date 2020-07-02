@@ -38,6 +38,12 @@ export default {
               "some very long text value with extra words to make it longer, some very long text value with extra words to make it longer, some very long text value with extra words to make it longer, some very long text value with extra words to make it longer,some very long text value with extra words to make it longer"
           }
         ]),
+        new VisualTestPropHelper("mask", [
+          {
+            value: this.defaultValue,
+            mask: 'aAaA aAaa'
+          }
+        ]),
         new VisualTestPropHelper("readonly", [
           { readonly: true },
           {

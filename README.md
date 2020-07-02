@@ -87,7 +87,7 @@ export default {
 ### Interface
 
 #### Props
-Inherits from [`<input type="text">`](https://developer.mozilla.org/fr/docs/Web/HTML/Element/input/text)
+Inherits from [`<input-facade>`](https://ronaldjerez.github.io/vue-input-facade/#component)
 
 Props | Required | Type | Default | Description
 ----- | -------- | ---- | ------- | -----------
@@ -97,7 +97,8 @@ value | no | String | '' | Part of the `v-model` binding.
 #### Events
 Name | Params | Description
 ---- | ------ | -----------
-input | value | Fires on input content changed. Part of the `v-model` binding.
+input | value - The input's current value, masked or unmasked. | Fires when the value of the input has been changed. Part of the `v-model` binding.
+change | value - The input's current value, masked or unmasked. | Fires when the value has been commited on the input. Usually on blur.
 
 #### Methods
 Name | Params | Description
@@ -150,7 +151,7 @@ iconColor | no | String | null | Color of the icons.
 #### Events
 Name | Params | Description
 ---- | ------ | -----------
-input | value | Fires on input content changed. Part of the `v-model` binding.
+input | value | Fires when the value of the input has been changed. Part of the `v-model` binding.
 
 #### Methods
 Name | Params | Description
@@ -195,7 +196,7 @@ autosize | no | Boolean | true | Allows to enable/disable auto resizing.
 #### Events
 Name | Params | Description
 ---- | ------ | -----------
-input | value | Fires on textarea content changed. Part of the `v-model` binding.
+input | value | Fires when the value of the textarea has been changed. Part of the `v-model` binding.
 
 #### Methods
 Name | Params | Description
@@ -244,7 +245,8 @@ currency | no | String, Object | null | Override default value of `vue-currency-
 #### Events
 Name | Params | Description
 ---- | ------ | -----------
-input | value | Fires on input content changed. Part of the `v-model` binding.
+input | value | Fires on interaction with the input. Part of the `v-model` binding.
+change | value | Fires when the value has been commited on the input. Usually on blur. Only if the value has changed.
 
 #### Methods
 Name | Params | Description
@@ -293,7 +295,7 @@ withTime | no | Boolean | false | Option to show date with time portion or not.
 #### Events
 Name | Params | Description
 ---- | ------ | -----------
-input | value | Fires on input content changed. Part of the `v-model` binding.
+input | value | Fires when the value of the input has been changed. Part of the `v-model` binding.
 
 #### Methods
 Name | Params | Description
@@ -341,8 +343,8 @@ format | no | String | 'h:mm' | Display format option. Possible value: 'h:mm', '
 #### Events
 Name | Params | Description
 ---- | ------ | -----------
-input | value | Fires on input content changed.
-blur | value | Fires on input lost focus. Part of the `v-model` binding.
+input | value | Fires when the value of the input has been changed.
+blur | value | Fires when the input lost focus. Part of the `v-model` binding.
 
 #### Methods
 Name | Params | Description
@@ -381,8 +383,8 @@ Inherits from [`vue-rate-it`](https://craigh411.github.io/vue-rate-it/#/docs/fon
 
 Props | Required | Type | Default | Description
 ----- | -------- | ---- | ------- | -----------
-v-model | no | String | '' | Value binding.
-value | no | String | '' | Part of the `v-model` binding.
+v-model | no | Number | 0 | Value binding.
+value | no | Number | 0 | Part of the `v-model` binding.
 resetable | no | Boolean | true | Allows to reset the value if click on the same value.
 glyph | no | String | Star | A svg path to follow. Large library of font-awesome like icons at `vue-rate-it/glyphs`.
 activeColor | no | String | #FCB400 | The color of the highlighted portion of a glyph.
@@ -396,13 +398,8 @@ disabled | no | Boolean | false | When set to true, the rating cannot be edited.
 #### Events
 Name | Params | Description
 ---- | ------ | -----------
-input | value | Fires on rating selected changed. Returns the rating that the user has selected. Part of the `v-model` binding
-current-rating | value | Fires on hover. Returns the rating the mouse is currently over.
-
-#### Methods
-Name | Params | Description
----- | ------ | -----------
-focus | [none] | Focus the input.
+input | value | Fires when the value of the selected rating has been changed. Returns the rating that the user has selected. Part of the `v-model` binding
+current-rating | value | Fires when the mouse is over. Returns the rating the mouse is currently over.
 
 
 
@@ -448,7 +445,7 @@ readonly | no | Boolean | false | Make component readonly.
 #### Events
 Name | Params | Description
 ---- | ------ | -----------
-input | value | Fires on input content changed. Part of the `v-model` binding.
+input | value | Fires when the value of the input has been changed. Part of the `v-model` binding.
 
 
 
