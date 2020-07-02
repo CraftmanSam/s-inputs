@@ -23,6 +23,11 @@ export default {
       modifiedValue: this.value
     };
   },
+  watch: {
+    value(newValue){
+      this.modifiedValue = newValue
+    }
+  },
   computed: {
     type() {
       return this.withTime ? "datetime-local" : "date";

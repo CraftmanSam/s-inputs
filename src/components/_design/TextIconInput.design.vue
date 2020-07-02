@@ -29,7 +29,7 @@ export default {
       events: ["input"],
       methods: ["focus"],
       icon: ["fas", "search"],
-      inputClass: "form-control",
+      inputClass: "form-control"
     };
   },
   computed: {
