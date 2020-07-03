@@ -25,8 +25,14 @@ export default {
       model: "some text in a variable",
       defaultValue: "some text",
       defaultClass: "form-control",
-      events: ["input"],
-      methods: ["focus"]
+      events: ["input",'change'],
+      methods: ["focus"],
+      hexTokens: {
+        F: {
+          pattern: /[0-9A-F]/i,
+          transform: v=> v.toLocaleUpperCase()
+        }
+      }
     };
   },
   computed: {
@@ -38,10 +44,23 @@ export default {
               "some very long text value with extra words to make it longer, some very long text value with extra words to make it longer, some very long text value with extra words to make it longer, some very long text value with extra words to make it longer,some very long text value with extra words to make it longer"
           }
         ]),
+        new VisualTestPropHelper("emitInputOnCreated", [
+          {
+            value: this.defaultValue,
+            emitInputOnCreated: true
+          }
+        ]),
         new VisualTestPropHelper("mask", [
           {
             value: this.defaultValue,
             mask: 'aAaA aAaa'
+          }
+        ]),
+        new VisualTestPropHelper("token", [
+          {
+            value: this.defaultValue,
+            mask: '\\#FFFFFF',
+            tokens: this.hexTokens
           }
         ]),
         new VisualTestPropHelper("readonly", [

@@ -6,17 +6,25 @@
 export default {
   name: "TextInput",
   props: {
-    value: String
+    value: String,
+    emitInputOnCreated: {
+      type: Boolean,
+      default: false
+    }
   },
   data() {
     return {
-      text: this.value
+      text: this.value,
+      preventInputEmit: !this.emitInputOnCreated
     };
   },
   watch: {
     value(newValue) {
       this.text = newValue;
     }
+  },
+  mounted() {
+    this.preventInputEmit = false;
   },
   computed: {
     listeners() {
@@ -25,7 +33,10 @@ export default {
         ...this.$listeners,
         input(value) {
           vm.text = value;
-          vm.$emit("input", value);
+
+          if (!vm.preventInputEmit) {
+            vm.$emit("input", value);
+          }
         }
       };
     }

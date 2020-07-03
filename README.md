@@ -93,6 +93,7 @@ Props | Required | Type | Default | Description
 ----- | -------- | ---- | ------- | -----------
 v-model | no | String | '' | Value binding.
 value | no | String | '' | Part of the `v-model` binding.
+emit-input-on-created | no | Boolean | false | Emit an `input` event when created if `true`
 
 #### Events
 Name | Params | Description
