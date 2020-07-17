@@ -1,8 +1,7 @@
 <template>
   <VisualTest
     :component="component"
-    :value="model"
-    :defaultValue="defaultValue"
+    :defaultAttrs="defaultAttrs"
     :props="props"
     :events="events"
     :methods="methods"
@@ -12,8 +11,8 @@
 <script>
 import Heart from "vue-rate-it/glyphs/heart";
 
-import { VisualTest, VisualTestPropHelper } from "@solution5520/s-visual-test";
-import RatingInput from "@/components/RatingInput.vue";
+import { VisualTest, Section, Test } from "@solution5520/s-visual-test";
+import { RatingInput } from "../../components";
 
 export default {
   name: "RatingInputDesign",
@@ -23,158 +22,111 @@ export default {
   data() {
     return {
       component: RatingInput,
-      model: 4,
-      defaultValue: 3.3,
-      events: ["input", "current-rating"],
-      methods: [],
-      glyph: Heart
-    };
-  },
-  computed: {
-    props() {
-      return [
-        new VisualTestPropHelper("not resetable", [
+      defaultAttrs: {
+        value: 3.3
+      },
+      props: [
+        new Section("resetable", "not resetable", [
           {
-            value: this.defaultValue,
             resetable: false
           }
         ]),
-        new VisualTestPropHelper("glyph", [
+        new Section("glyph", [
           {
-            value: this.defaultValue,
-            glyph: this.glyph
+            glyph: Heart
           }
         ]),
-        new VisualTestPropHelper("active-color", [
-          {
-            value: this.defaultValue,
-            activeColor: "green"
-          }
-        ]),
-        new VisualTestPropHelper("inactive-color", [
-          {
-            value: this.defaultValue,
-            inactiveColor: "red"
-          }
-        ]),
-        new VisualTestPropHelper("item-size", [
-          {
-            value: this.defaultValue,
+        new Section("activeColor", "active-color", "s-test--color_type"),
+        new Section("inactiveColor", "inactive-color", "s-test--color_type"),
+        new Section("itemSize", "item-size", [
+          new Test("small", {
             itemSize: 20
-          },
-          {
-            value: this.defaultValue,
+          }),
+          new Test("large", {
             itemSize: 50
-          }
+          })
         ]),
-        new VisualTestPropHelper("border-width", [
-          {
-            value: this.defaultValue,
+        new Section("borderWidth", "border-width", [
+          new Test("small", {
             borderWidth: 2
-          },
-          {
-            value: this.defaultValue,
+          }),
+          new Test("large", {
             borderWidth: 10
-          }
+          })
         ]),
-        new VisualTestPropHelper("small increment", [
-          {
-            value: this.defaultValue,
+        new Section("increment", [
+          new Test("half", {
             increment: 0.5
-          },
-          {
-            value: this.defaultValue,
+          }),
+          new Test("continuous", {
             increment: 0.01
-          }
+          })
         ]),
-        new VisualTestPropHelper("show-rating", [
+        new Section("showRating", "show-rating", [
           {
-            value: this.defaultValue,
             showRating: true
           },
-          {
-            value: this.defaultValue,
+          new Test("continuous", {
             showRating: true,
             increment: 0.01
-          }
+          })
         ]),
-        new VisualTestPropHelper("max-rating", [
-          {
-            value: this.defaultValue,
+        new Section("maxRating", "max-rating", [
+          new Test("only 2", {
             maxRating: 2
-          },
-          {
-            value: this.defaultValue,
+          }),
+          new Test("with 10", {
             maxRating: 10
-          }
+          })
         ]),
-        new VisualTestPropHelper("text-class", [
+        new Section("textClass", "text-class", [
           {
-            value: this.defaultValue,
             textClass: "text-success",
             showRating: true
           }
         ]),
-        new VisualTestPropHelper("fixed-points", [
+        new Section("fixedPoints", "fixed-points", [
           {
-            value: this.defaultValue,
             fixedPoints: 3,
             showRating: true
           },
-          {
-            value: this.defaultValue,
+          new Test("continuous", {
             fixedPoints: 4,
             showRating: true,
             increment: 0.01
-          }
+          })
         ]),
-        new VisualTestPropHelper("border-color", [
+        new Section("borderColor", "border-color", [
           {
-            value: this.defaultValue,
             borderColor: "red",
             borderWidth: 2
           }
         ]),
-        new VisualTestPropHelper("spacing", [
-          {
-            value: this.defaultValue,
+        new Section("spacing", [
+          new Test("negative", {
             spacing: -10
-          },
-          {
-            value: this.defaultValue,
+          }),
+          new Test("none", {
             spacing: 0
-          },
-          {
-            value: this.defaultValue,
+          }),
+          new Test("large", {
             spacing: 10
-          },
-          {
-            value: this.defaultValue,
+          }),
+          new Test("huge", {
             spacing: 50
-          }
+          })
         ]),
-        new VisualTestPropHelper("rtl", [
+        new Section("rtl", "right to left", [
           {
-            value: this.defaultValue,
             rtl: true
           }
         ]),
-        new VisualTestPropHelper("readonly", [
-          { readonly: true },
-          {
-            value: this.defaultValue,
-            readonly: true
-          }
-        ]),
-        new VisualTestPropHelper("disabled", [
-          { disabled: true },
-          {
-            value: this.defaultValue,
-            disabled: true
-          }
-        ])
-      ];
-    }
+        "readonly",
+        "disabled"
+      ],
+      events: ["input", "current-rating"],
+      methods: []
+    };
   }
 };
 </script>

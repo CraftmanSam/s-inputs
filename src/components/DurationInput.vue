@@ -156,7 +156,7 @@ export default {
         let totalSeconds = this.getTotalSec(hourMinSec);
         return totalSeconds;
       } else {
-        let text = value.toString();
+        let text = (value || "").toString();
         let authorizedCharExp = /[\d':.]+/g;
         let matches = text.match(authorizedCharExp);
         if (!matches) {

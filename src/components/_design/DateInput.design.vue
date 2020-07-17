@@ -1,9 +1,8 @@
 <template>
   <VisualTest
     :component="component"
-    :value="model"
-    :defaultValue="defaultValue"
-    :defaultClass="defaultClass"
+    :defaultAttrs="defaultAttrs"
+    :model="model"
     :props="props"
     :events="events"
     :methods="methods"
@@ -11,8 +10,8 @@
 </template>
 
 <script>
-import { VisualTest, VisualTestPropHelper } from "@solution5520/s-visual-test";
-import DateInput from "@/components/DateInput.vue";
+import { VisualTest, Section, Test } from "@solution5520/s-visual-test";
+import { DateInput } from "../../components";
 
 export default {
   name: "DateInputDesign",
@@ -22,38 +21,40 @@ export default {
   data() {
     return {
       component: DateInput,
-      model: new Date(2000, 1, 1),
-      defaultValue: new Date(),
-      defaultClass: "form-control",
-      events: ["input"],
-      methods: ["focus"]
-    };
-  },
-  computed: {
-    props() {
-      return [
-        new VisualTestPropHelper("withTime", [
+      defaultAttrs: {
+        value: new Date(),
+        class: "form-control"
+      },
+      model: new Section("value", [
+        {},
+        new Test("with time", {
+          withTime: true
+        })
+      ]),
+      props: [
+        new Section("value", "weird value", [
+          new Test("small date",{
+            value: new Date(new Date(0,0).setFullYear(100))
+          })
+        ]),
+        new Section("withTime", "with-time", [
           {
-            value: this.defaultValue,
             withTime: true
           }
         ]),
-        new VisualTestPropHelper("readonly", [
-          { readonly: true },
-          {
-            value: this.defaultValue,
-            readonly: true
-          }
-        ]),
-        new VisualTestPropHelper("disabled", [
-          { disabled: true },
-          {
-            value: this.defaultValue,
-            disabled: true
-          }
+        "readonly",
+        "disabled"
+      ],
+      events: [
+        new Section("input", [
+          {},
+          new Test("with time", {
+            withTime: true
+          })
         ])
-      ];
-    }
+      ],
+      methods: ["focus"]
+    };
   }
 };
 </script>

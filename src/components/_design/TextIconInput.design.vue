@@ -1,9 +1,7 @@
 <template>
   <VisualTest
     :component="component"
-    :value="model"
-    :defaultValue="defaultValue"
-    :defaultClass="defaultClass"
+    :defaultAttrs="defaultAttrs"
     :props="props"
     :events="events"
     :methods="methods"
@@ -11,8 +9,8 @@
 </template>
 
 <script>
-import { VisualTest, VisualTestPropHelper } from "@solution5520/s-visual-test";
-import TextIconInput from "@/components/TextIconInput.vue";
+import { VisualTest, Section } from "@solution5520/s-visual-test";
+import { TextIconInput } from "../../components";
 
 export default {
   name: "IconInputDesign",
@@ -22,98 +20,51 @@ export default {
   data() {
     return {
       component: TextIconInput,
-      model: "some text in a variable",
-      defaultValue: 
-              "some very long text value with extra words to make it longer, some very long text value with extra words to make it longer, some very long text value with extra words to make it longer, some very long text value with extra words to make it longer,some very long text value with extra words to make it longer",
-      defaultClass: "",
-      events: ["input"],
-      methods: ["focus"],
-      icon: ["fas", "search"],
-      inputClass: "form-control"
-    };
-  },
-  computed: {
-    props() {
-      return [
-        new VisualTestPropHelper("inputClass", [
+      defaultAttrs: {
+        value: "some text",
+        inputClass: "form-control"
+      },
+      props: [
+        new Section("value", "s-test--text"),
+        new Section("inputClass", [
           {
-            value: this.defaultValue,
-            inputClass: this.inputClass
+            inputClass: "form-control"
           }
         ]),
-        new VisualTestPropHelper("prefixIcon", [
+        new Section("prefixIcon", "s-test--fa_icon"),
+        new Section("suffixIcon", "s-test--fa_icon"),
+        new Section("both icon", [
           {
-            inputClass: this.inputClass,
-            prefixIcon: "search"
-          },
-          {
-            value: this.defaultValue,
-            inputClass: this.inputClass,
-            prefixIcon: this.icon
-          }
-        ]),
-        new VisualTestPropHelper("suffixIcon", [
-          {
-            inputClass: this.inputClass,
-            suffixIcon: "search"
-          },
-          {
-            value: this.defaultValue,
-            inputClass: this.inputClass,
-            suffixIcon: this.icon
-          }
-        ]),
-        new VisualTestPropHelper("both icon", [
-          {
-            inputClass: this.inputClass,
             prefixIcon: "search",
             suffixIcon: "search"
-          },
-          {
-            value: this.defaultValue,
-            inputClass: this.inputClass,
-            prefixIcon: this.icon,
-            suffixIcon: this.icon
           }
         ]),
-        new VisualTestPropHelper("iconColor", [
+        new Section("iconColor", [
           {
-            inputClass: this.inputClass,
             iconColor: "green",
             prefixIcon: "search",
             suffixIcon: "search"
           }
         ]),
-        new VisualTestPropHelper("readonly", [
-          {
-            inputClass: this.inputClass,
-            readonly: true
-          },
-          {
-            value: this.defaultValue,
-            inputClass: this.inputClass,
-            readonly: true
-          }
-        ]),
-        new VisualTestPropHelper("disabled", [
-          {
-            inputClass: this.inputClass,
-            disabled: true
-          },
-          {
-            value: this.defaultValue,
-            inputClass: this.inputClass,
-            disabled: true
-          }
-        ]),
-        new VisualTestPropHelper("placeholder", [
-          {
-            inputClass: this.inputClass,
-            placeholder: "somePlaceholder"
-          }
-        ])
-      ];
-    }
+        "readonly",
+        "disabled",
+        "placeholder"
+      ],
+      events: [
+        "input",
+        new Section("click", {
+          prefixIcon: "search",
+          suffixIcon: "search"
+        }),
+        new Section("prefixIconClick", {
+          prefixIcon: "search"
+        }),
+        new Section("suffixIconClick", {
+          suffixIcon: "search"
+        })
+      ],
+      methods: ["focus"]
+    };
   }
 };
 </script>

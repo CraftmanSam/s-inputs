@@ -1,9 +1,7 @@
 <template>
   <VisualTest
     :component="component"
-    :value="model"
-    :defaultValue="defaultValue"
-    :defaultClass="defaultClass"
+    :defaultAttrs="defaultAttrs"
     :props="props"
     :events="events"
     :methods="methods"
@@ -11,8 +9,8 @@
 </template>
 
 <script>
-import { VisualTest, VisualTestPropHelper } from "@solution5520/s-visual-test";
-import NumberInput from "@/components/NumberInput.vue";
+import { VisualTest, Section, Test } from "@solution5520/s-visual-test";
+import { NumberInput } from "../../components";
 
 export default {
   name: "NumberInputDesign",
@@ -22,9 +20,10 @@ export default {
   data() {
     return {
       component: NumberInput,
-      model: 23,
-      defaultValue: 14,
-      defaultClass: "form-control",
+      defaultAttrs: {
+        value: 14,
+        class: "form-control"
+      },
       events: ["input"],
       methods: ["focus"]
     };
@@ -32,56 +31,58 @@ export default {
   computed: {
     props() {
       return [
-        new VisualTestPropHelper("value with decimals", [
-          {
+        new Section("value", [
+          new Test("positive",{
+            value: 14
+          }),
+          new Test("large",{
+            value: Number.MAX_VALUE
+          }),
+          new Test("infinity",{
+            value: Number.POSITIVE_INFINITY
+          }),
+          new Test("negative",{
+            value: -42
+          }),
+          new Test("with decimals",{
             value: Math.PI
+          })
+        ]),
+        new Section("allowNegative", "don't allow negative", [
+          {
+            allowNegative: false,
+            value: -42
           }
         ]),
-        new VisualTestPropHelper("don't allowNegative", [
-          {
-            value: -42,
-            allowNegative: false
-          }
-        ]),
-        new VisualTestPropHelper("currency", [
-          {
-            value: this.defaultValue,
+        new Section("currency", [
+          new Test("canadian dollar", {
             currency: "CAD"
-          },
-          {
-            value: this.defaultValue,
+          }),
+          new Test("custom prefix and suffix", {
             currency: { prefix: "prefix", suffix: "suffix" }
-          }
+          })
         ]),
-        new VisualTestPropHelper("with distractionFree turned off", [
+        new Section("distractionFree","with distraction-free turned off", [
           {
-            value: this.defaultValue,
             distractionFree: false
           }
         ]),
-        new VisualTestPropHelper("autoDecimalMode", [
+        new Section("autoDecimalMode","auto-decimal-mode", [
           {
-            value: this.defaultValue,
             autoDecimalMode: true
           }
         ]),
-        new VisualTestPropHelper("readonly", [
-          { readonly: true },
-          {
-            value: this.defaultValue,
-            readonly: true
-          }
+        new Section("precision","decimal precision", [
+          new Test("none", {
+            precision: 0
+          }),
+          new Test("lot", {
+            precision: 10
+          })
         ]),
-        new VisualTestPropHelper("disabled", [
-          { disabled: true },
-          {
-            value: this.defaultValue,
-            disabled: true
-          }
-        ]),
-        new VisualTestPropHelper("placeholder", [
-          { placeholder: "somePlaceholder" }
-        ])
+        "readonly",
+        "disabled",
+        "placeholder"
       ];
     }
   }

@@ -11,7 +11,7 @@
       ref="input"
       type="text"
       :class="inputClass"
-      :value="value"
+      :value="text"
       v-bind="$attrs"
       v-on="listeners"
     />
@@ -47,13 +47,26 @@ export default {
       default: undefined
     }
   },
+  data() {
+    return {
+      text: this.value
+    };
+  },
+  watch: {
+    value(newValue) {
+      this.text = newValue;
+    }
+  },
   computed: {
     listeners() {
       let vm = this;
       return {
         ...this.$listeners,
         input(event) {
-          vm.$emit("input", event.target.value);
+          const value = event.target.value;
+
+          vm.text = value;
+          vm.$emit("input", value);
         }
       };
     }
@@ -63,12 +76,16 @@ export default {
       event.preventDefault();
       this.focus();
       this.$refs.input.setSelectionRange(0, 0);
+      this.$emit("prefixIconClick", event);
+      this.$emit("click", event);
     },
     onSuffixIconClick(event) {
       event.preventDefault();
       this.focus();
       let lastIndex = this.$refs.input.value.length;
       this.$refs.input.setSelectionRange(lastIndex, lastIndex);
+      this.$emit("suffixIconClick", event);
+      this.$emit("click", event);
     },
     focus() {
       this.$refs.input.focus();

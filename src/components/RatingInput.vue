@@ -83,8 +83,8 @@ export default {
             value = 0;
           }
 
-            vm.rating = value;
-            vm.$emit("input", value);
+          vm.rating = value;
+          vm.$emit("input", value);
         }
       };
     }

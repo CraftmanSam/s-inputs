@@ -1,9 +1,7 @@
 <template>
   <VisualTest
     :component="component"
-    :value="model"
-    :defaultValue="defaultValue"
-    :defaultClass="defaultClass"
+    :defaultAttrs="defaultAttrs"
     :props="props"
     :events="events"
     :methods="methods"
@@ -11,8 +9,8 @@
 </template>
 
 <script>
-import { VisualTest, VisualTestPropHelper } from "@solution5520/s-visual-test";
-import TextInput from "@/components/TextInput.vue";
+import { VisualTest, Section, Test } from "@solution5520/s-visual-test";
+import { TextInput } from "../../components";
 
 export default {
   name: "TextInputDesign",
@@ -22,15 +20,24 @@ export default {
   data() {
     return {
       component: TextInput,
-      model: "some text in a variable",
-      defaultValue: "some text",
-      defaultClass: "form-control",
-      events: ["input",'change'],
+      defaultAttrs: {
+        value: "some text",
+        class: "form-control"
+      },
+      events: [
+        new Section("input", [
+          {},
+          new Test("emit input on created", {
+            emitInputOnCreated: true
+          })
+        ]),
+        "change"
+      ],
       methods: ["focus"],
       hexTokens: {
         F: {
           pattern: /[0-9A-F]/i,
-          transform: v=> v.toLocaleUpperCase()
+          transform: v => v.toLocaleUpperCase()
         }
       }
     };
@@ -38,48 +45,22 @@ export default {
   computed: {
     props() {
       return [
-        new VisualTestPropHelper("value with long text", [
+        new Section("value", "s-test--text"),
+        new Section("emitInputOnCreated", "emit input on created"),
+        new Section("mask", [
           {
-            value:
-              "some very long text value with extra words to make it longer, some very long text value with extra words to make it longer, some very long text value with extra words to make it longer, some very long text value with extra words to make it longer,some very long text value with extra words to make it longer"
+            mask: "aAaA aAaa"
           }
         ]),
-        new VisualTestPropHelper("emitInputOnCreated", [
+        new Section("token", "color mask: '#FFFFFF'", [
           {
-            value: this.defaultValue,
-            emitInputOnCreated: true
-          }
-        ]),
-        new VisualTestPropHelper("mask", [
-          {
-            value: this.defaultValue,
-            mask: 'aAaA aAaa'
-          }
-        ]),
-        new VisualTestPropHelper("token", [
-          {
-            value: this.defaultValue,
-            mask: '\\#FFFFFF',
+            mask: "\\#FFFFFF",
             tokens: this.hexTokens
           }
         ]),
-        new VisualTestPropHelper("readonly", [
-          { readonly: true },
-          {
-            value: this.defaultValue,
-            readonly: true
-          }
-        ]),
-        new VisualTestPropHelper("disabled", [
-          { disabled: true },
-          {
-            value: this.defaultValue,
-            disabled: true
-          }
-        ]),
-        new VisualTestPropHelper("placeholder", [
-          { placeholder: "somePlaceholder" }
-        ])
+        "readonly",
+        "disabled",
+        "placeholder"
       ];
     }
   }

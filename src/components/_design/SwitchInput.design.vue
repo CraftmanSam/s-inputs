@@ -1,8 +1,7 @@
 <template>
   <VisualTest
     :component="component"
-    :value="model"
-    :defaultValue="defaultValue"
+    :defaultAttrs="defaultAttrs"
     :props="props"
     :events="events"
     :methods="methods"
@@ -10,8 +9,8 @@
 </template>
 
 <script>
-import { VisualTest, VisualTestPropHelper } from "@solution5520/s-visual-test";
-import SwitchInput from "@/components/SwitchInput.vue";
+import { VisualTest, Section, Test } from "@solution5520/s-visual-test";
+import { SwitchInput } from "../../components";
 
 export default {
   name: "SwitchInputDesign",
@@ -21,62 +20,67 @@ export default {
   data() {
     return {
       component: SwitchInput,
-      model: true,
-      defaultValue: true,
-      events: ["input"],
-      methods: []
-    };
-  },
-  computed: {
-    props() {
-      return [
-        new VisualTestPropHelper("not typeBold", [
+      defaultAttrs: {
+        value: true
+      },
+      props: [
+        new Section("typeBold", "not typeBold", [
           {
             typeBold: false
           }
         ]),
-        new VisualTestPropHelper("theme and color", [
-          {
+        new Section("theme", "theme and color", [
+          new Test("bootstrap", {
             theme: "bootstrap",
             color: "warning"
-          }
+          }),
+          new Test("bulma", {
+            theme: "bulma",
+            color: "primary"
+          })
         ]),
-        new VisualTestPropHelper("textEnabled", [
+        new Section("textEnabled", [
           {
             textEnabled: "On"
           }
         ]),
-        new VisualTestPropHelper("textDisabled", [
+        new Section("textDisabled", [
           {
-            textDisabled  : "Off"
+            textDisabled: "Off"
           }
         ]),
-        new VisualTestPropHelper("color", [
+        new Section("color", [
+          new Test("success", {
+            theme: "bootstrap",
+            color: "success"
+          }),
+          new Test("warning", {
+            theme: "bootstrap",
+            color: "warning"
+          }),
+          new Test("danger", {
+            theme: "bootstrap",
+            color: "danger"
+          })
+        ]),
+        new Section("emitOnMount", [
           {
-            color  : "red"
+            emitOnMount: true
           }
         ]),
-        new VisualTestPropHelper("emitOnMount", [
-          {
-            emitOnMount  : true
-          }
-        ]),
-        new VisualTestPropHelper("readonly", [
-          { readonly: true },
-          {
-            value: this.defaultValue,
-            readonly: true
-          }
-        ]),
-        new VisualTestPropHelper("disabled", [
-          { disabled: true },
-          {
-            value: this.defaultValue,
-            disabled: true
-          }
+        "readonly",
+        "disabled"
+      ],
+      events: [
+        new Section("input", [
+          {},
+          new Test("emitOnMount", {
+            emitOnMount: true
+          })
         ])
-      ];
-    }
+      ],
+      methods: []
+    };
   }
 };
 </script>
