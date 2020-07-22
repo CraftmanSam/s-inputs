@@ -138,7 +138,7 @@ export default {
 ### Interface
 
 #### Props
-Inherits from [`<input type="text">`](https://developer.mozilla.org/fr/docs/Web/HTML/Element/input/text)
+Inherits from [`TextInput`](#TextInput)
 
 Props | Required | Type | Default | Description
 ----- | -------- | ---- | ------- | -----------
