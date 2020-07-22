@@ -7,9 +7,8 @@
       :icon="prefixIcon"
       @click="onPrefixIconClick"
     />
-    <input
+    <TextInput
       ref="input"
-      type="text"
       :class="inputClass"
       :value="text"
       v-bind="$attrs"
@@ -26,6 +25,8 @@
 </template>
 
 <script>
+import TextInput from "./TextInput.vue";
+
 export default {
   name: "TextIconInput",
   props: {
@@ -47,6 +48,9 @@ export default {
       default: undefined
     }
   },
+  components: {
+    TextInput
+  },
   data() {
     return {
       text: this.value
@@ -62,9 +66,7 @@ export default {
       let vm = this;
       return {
         ...this.$listeners,
-        input(event) {
-          const value = event.target.value;
-
+        input(value) {
           vm.text = value;
           vm.$emit("input", value);
         }
@@ -75,7 +77,7 @@ export default {
     onPrefixIconClick(event) {
       event.preventDefault();
       this.focus();
-      this.$refs.input.setSelectionRange(0, 0);
+      this.$refs.input.$el.setSelectionRange(0, 0);
       this.$emit("prefixIconClick", event);
       this.$emit("click", event);
     },
@@ -83,7 +85,7 @@ export default {
       event.preventDefault();
       this.focus();
       let lastIndex = this.$refs.input.value.length;
-      this.$refs.input.setSelectionRange(lastIndex, lastIndex);
+      this.$refs.input.$el.setSelectionRange(lastIndex, lastIndex);
       this.$emit("suffixIconClick", event);
       this.$emit("click", event);
     },

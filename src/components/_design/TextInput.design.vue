@@ -31,7 +31,8 @@ export default {
             emitInputOnCreated: true
           })
         ]),
-        "change"
+        "change",
+        "click"
       ],
       methods: ["focus"],
       hexTokens: {

@@ -1,5 +1,5 @@
 <template>
-  <input-facade ref="input" :value="text" v-bind="$attrs" v-on="listeners" />
+  <input-facade ref="input" :value="text" v-bind="$attrs" @click.native="click" v-on="listeners" />
 </template>
 
 <script>
@@ -42,6 +42,9 @@ export default {
     }
   },
   methods: {
+    click() {
+      this.$emit("click");
+    },
     focus() {
       this.$refs.input.$el.focus();
     },
