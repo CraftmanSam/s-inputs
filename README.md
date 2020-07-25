@@ -94,6 +94,7 @@ Props | Required | Type | Default | Description
 v-model | no | String | '' | Value binding.
 value | no | String | '' | Part of the `v-model` binding.
 emit-input-on-created | no | Boolean | false | Emit an `input` event when created if `true`
+mask | no | String, Array | '' | The mask pattern for this input, it could be a single pattern or multiple patterns when its an array.
 
 #### Events
 Name | Params | Description
@@ -106,6 +107,16 @@ Name | Params | Description
 ---- | ------ | -----------
 focus | [none] | Focus the input.
 
+
+#### Mask Tokens
+
+* S = alpha characters
+* \# = numerical characters
+* X = alpha numerical characters
+* A = alpha characters, transformed to uppercase
+* a = alpha characters, transformed to lowercase
+* F = hexadecimal characters, transformed to uppercase
+* \ = escape any of the above characters
 
 
 
@@ -153,6 +164,9 @@ iconColor | no | String | null | Color of the icons.
 Name | Params | Description
 ---- | ------ | -----------
 input | value | Fires when the value of the input has been changed. Part of the `v-model` binding.
+click | MouseEvent | Fires when the control is clicked.
+prefixIconClick | MouseEvent | Fires when the prefix icon is clicked.
+suffixIconClick | MouseEvent | Fires when the suffix icon is clicked.
 
 #### Methods
 Name | Params | Description

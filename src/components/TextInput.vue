@@ -1,5 +1,5 @@
 <template>
-  <input-facade ref="input" :value="text" v-bind="$attrs" @click.native="click" v-on="listeners" />
+  <input ref="input" v-facade="mask" :value="text" v-bind="$attrs" v-on="listeners"/>
 </template>
 
 <script>
@@ -10,6 +10,10 @@ export default {
     emitInputOnCreated: {
       type: Boolean,
       default: false
+    },
+    mask: {
+      type: [String, Array],
+      default: ''
     }
   },
   data() {
@@ -31,7 +35,8 @@ export default {
       let vm = this;
       return {
         ...this.$listeners,
-        input(value) {
+        input(event) {
+          const value = event.target.value;
           vm.text = value;
 
           if (!vm.preventInputEmit) {
@@ -42,11 +47,8 @@ export default {
     }
   },
   methods: {
-    click() {
-      this.$emit("click");
-    },
     focus() {
-      this.$refs.input.$el.focus();
+      this.$refs.input.focus();
     },
     refresh() {
       this.text = this.value;

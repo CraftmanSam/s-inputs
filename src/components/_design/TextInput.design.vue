@@ -24,6 +24,21 @@ export default {
         value: "some text",
         class: "form-control"
       },
+      props: [
+        new Section("value", "s-test--text"),
+        new Section("emitInputOnCreated", "emit input on created"),
+        new Section("mask", [
+          new Test("letter casing", {
+            mask: "aAaA aAaa"
+          }),
+          new Test("color like text", {
+            mask: "\\#FFFFFF"
+          })
+        ]),
+        "readonly",
+        "disabled",
+        "placeholder"
+      ],
       events: [
         new Section("input", [
           {},
@@ -31,39 +46,10 @@ export default {
             emitInputOnCreated: true
           })
         ]),
-        "change",
-        "click"
+        "change"
       ],
-      methods: ["focus"],
-      hexTokens: {
-        F: {
-          pattern: /[0-9A-F]/i,
-          transform: v => v.toLocaleUpperCase()
-        }
-      }
+      methods: ["focus"]
     };
-  },
-  computed: {
-    props() {
-      return [
-        new Section("value", "s-test--text"),
-        new Section("emitInputOnCreated", "emit input on created"),
-        new Section("mask", [
-          {
-            mask: "aAaA aAaa"
-          }
-        ]),
-        new Section("token", "color mask: '#FFFFFF'", [
-          {
-            mask: "\\#FFFFFF",
-            tokens: this.hexTokens
-          }
-        ]),
-        "readonly",
-        "disabled",
-        "placeholder"
-      ];
-    }
   }
 };
 </script>
