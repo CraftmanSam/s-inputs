@@ -1,5 +1,5 @@
 <template>
-  <input ref="input" v-facade="mask" :value="text" v-bind="$attrs" v-on="listeners"/>
+  <input-facade ref="input" :mask="mask" :value="text" v-bind="$attrs" v-on="listeners"/>
 </template>
 
 <script>
@@ -7,10 +7,6 @@ export default {
   name: "TextInput",
   props: {
     value: String,
-    emitInputOnCreated: {
-      type: Boolean,
-      default: false
-    },
     mask: {
       type: [String, Array],
       default: ''
@@ -19,7 +15,6 @@ export default {
   data() {
     return {
       text: this.value,
-      preventInputEmit: !this.emitInputOnCreated
     };
   },
   watch: {
@@ -27,28 +22,23 @@ export default {
       this.text = newValue;
     }
   },
-  mounted() {
-    this.preventInputEmit = false;
-  },
   computed: {
     listeners() {
       let vm = this;
       return {
         ...this.$listeners,
-        input(event) {
-          const value = event.target.value;
+        input(value) {
+          // const value = event.target.value;
           vm.text = value;
 
-          if (!vm.preventInputEmit) {
-            vm.$emit("input", value);
-          }
+          vm.$emit("input", value);
         }
       };
     }
   },
   methods: {
     focus() {
-      this.$refs.input.focus();
+      this.$refs.input.$el.focus();
     },
     refresh() {
       this.text = this.value;

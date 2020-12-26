@@ -26,7 +26,6 @@ export default {
       },
       props: [
         new Section("value", "s-test--text"),
-        new Section("emitInputOnCreated", "emit input on created"),
         new Section("mask", [
           new Test("letter casing", {
             mask: "aAaA aAaa"
@@ -40,12 +39,7 @@ export default {
         "placeholder"
       ],
       events: [
-        new Section("input", [
-          {},
-          new Test("emit input on created", {
-            emitInputOnCreated: true
-          })
-        ]),
+        "input",
         "change"
       ],
       methods: ["focus"]

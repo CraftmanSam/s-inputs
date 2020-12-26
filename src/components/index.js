@@ -1,7 +1,7 @@
 import Vue from 'vue'
 
 // Dependencies
-import InputFacade from 'vue-input-facade'
+import InputFacade from './vue-input-facade/plugin'
 import VueCurrencyInput from 'vue-currency-input'
 
 // Inputs
