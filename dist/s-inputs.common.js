@@ -735,6 +735,28 @@ exports.f = Object.getOwnPropertyNames || function getOwnPropertyNames(O) {
 
 /***/ }),
 
+/***/ "2532":
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var $ = __webpack_require__("23e7");
+var notARegExp = __webpack_require__("5a34");
+var requireObjectCoercible = __webpack_require__("1d80");
+var correctIsRegExpLogic = __webpack_require__("ab13");
+
+// `String.prototype.includes` method
+// https://tc39.github.io/ecma262/#sec-string.prototype.includes
+$({ target: 'String', proto: true, forced: !correctIsRegExpLogic('includes') }, {
+  includes: function includes(searchString /* , position = 0 */) {
+    return !!~String(requireObjectCoercible(this))
+      .indexOf(notARegExp(searchString), arguments.length > 1 ? arguments[1] : undefined);
+  }
+});
+
+
+/***/ }),
+
 /***/ "25f0":
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -1495,6 +1517,20 @@ module.exports = {
   // `String.prototype.trim` method
   // https://tc39.github.io/ecma262/#sec-string.prototype.trim
   trim: createMethod(3)
+};
+
+
+/***/ }),
+
+/***/ "5a34":
+/***/ (function(module, exports, __webpack_require__) {
+
+var isRegExp = __webpack_require__("44e7");
+
+module.exports = function (it) {
+  if (isRegExp(it)) {
+    throw TypeError("The method doesn't accept regular expressions");
+  } return it;
 };
 
 
@@ -2522,13 +2558,6 @@ exports.f = DESCRIPTORS ? nativeDefineProperty : function defineProperty(O, P, A
 
 /***/ }),
 
-/***/ "9c87":
-/***/ (function(module, exports, __webpack_require__) {
-
-(function(t,e){ true?module.exports=e():undefined})("undefined"!==typeof self?self:this,(function(){return function(t){var e={};function n(r){if(e[r])return e[r].exports;var o=e[r]={i:r,l:!1,exports:{}};return t[r].call(o.exports,o,o.exports,n),o.l=!0,o.exports}return n.m=t,n.c=e,n.d=function(t,e,r){n.o(t,e)||Object.defineProperty(t,e,{enumerable:!0,get:r})},n.r=function(t){"undefined"!==typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(t,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(t,"__esModule",{value:!0})},n.t=function(t,e){if(1&e&&(t=n(t)),8&e)return t;if(4&e&&"object"===typeof t&&t&&t.__esModule)return t;var r=Object.create(null);if(n.r(r),Object.defineProperty(r,"default",{enumerable:!0,value:t}),2&e&&"string"!=typeof t)for(var o in t)n.d(r,o,function(e){return t[e]}.bind(null,o));return r},n.n=function(t){var e=t&&t.__esModule?function(){return t["default"]}:function(){return t};return n.d(e,"a",e),e},n.o=function(t,e){return Object.prototype.hasOwnProperty.call(t,e)},n.p="",n(n.s="fb15")}({"06cf":function(t,e,n){var r=n("83ab"),o=n("d1e7"),i=n("5c6c"),a=n("fc6a"),u=n("c04e"),c=n("5135"),f=n("0cfb"),s=Object.getOwnPropertyDescriptor;e.f=r?s:function(t,e){if(t=a(t),e=u(e,!0),f)try{return s(t,e)}catch(n){}if(c(t,e))return i(!o.f.call(t,e),t[e])}},"0cfb":function(t,e,n){var r=n("83ab"),o=n("d039"),i=n("cc12");t.exports=!r&&!o((function(){return 7!=Object.defineProperty(i("div"),"a",{get:function(){return 7}}).a}))},"1d80":function(t,e){t.exports=function(t){if(void 0==t)throw TypeError("Can't call method on "+t);return t}},"23cb":function(t,e,n){var r=n("a691"),o=Math.max,i=Math.min;t.exports=function(t,e){var n=r(t);return n<0?o(n+e,0):i(n,e)}},"23e7":function(t,e,n){var r=n("da84"),o=n("06cf").f,i=n("9112"),a=n("6eeb"),u=n("ce4e"),c=n("e893"),f=n("94ca");t.exports=function(t,e){var n,s,l,d,p,m,v=t.target,h=t.global,b=t.stat;if(s=h?r:b?r[v]||u(v,{}):(r[v]||{}).prototype,s)for(l in e){if(p=e[l],t.noTargetGet?(m=o(s,l),d=m&&m.value):d=s[l],n=f(h?l:v+(b?".":"#")+l,t.forced),!n&&void 0!==d){if(typeof p===typeof d)continue;c(p,d)}(t.sham||d&&d.sham)&&i(p,"sham",!0),a(s,l,p,t)}}},"241c":function(t,e,n){var r=n("ca84"),o=n("7839"),i=o.concat("length","prototype");e.f=Object.getOwnPropertyNames||function(t){return r(t,i)}},"25f0":function(t,e,n){"use strict";var r=n("6eeb"),o=n("825a"),i=n("d039"),a=n("ad6d"),u="toString",c=RegExp.prototype,f=c[u],s=i((function(){return"/a/b"!=f.call({source:"a",flags:"b"})})),l=f.name!=u;(s||l)&&r(RegExp.prototype,u,(function(){var t=o(this),e=String(t.source),n=t.flags,r=String(void 0===n&&t instanceof RegExp&&!("flags"in c)?a.call(t):n);return"/"+e+"/"+r}),{unsafe:!0})},"428f":function(t,e,n){var r=n("da84");t.exports=r},"44ad":function(t,e,n){var r=n("d039"),o=n("c6b6"),i="".split;t.exports=r((function(){return!Object("z").propertyIsEnumerable(0)}))?function(t){return"String"==o(t)?i.call(t,""):Object(t)}:Object},"4d64":function(t,e,n){var r=n("fc6a"),o=n("50c4"),i=n("23cb"),a=function(t){return function(e,n,a){var u,c=r(e),f=o(c.length),s=i(a,f);if(t&&n!=n){while(f>s)if(u=c[s++],u!=u)return!0}else for(;f>s;s++)if((t||s in c)&&c[s]===n)return t||s||0;return!t&&-1}};t.exports={includes:a(!0),indexOf:a(!1)}},"50c4":function(t,e,n){var r=n("a691"),o=Math.min;t.exports=function(t){return t>0?o(r(t),9007199254740991):0}},5135:function(t,e){var n={}.hasOwnProperty;t.exports=function(t,e){return n.call(t,e)}},5692:function(t,e,n){var r=n("c430"),o=n("c6cd");(t.exports=function(t,e){return o[t]||(o[t]=void 0!==e?e:{})})("versions",[]).push({version:"3.6.5",mode:r?"pure":"global",copyright:"© 2020 Denis Pushkarev (zloirock.ru)"})},"56ef":function(t,e,n){var r=n("d066"),o=n("241c"),i=n("7418"),a=n("825a");t.exports=r("Reflect","ownKeys")||function(t){var e=o.f(a(t)),n=i.f;return n?e.concat(n(t)):e}},"5c6c":function(t,e){t.exports=function(t,e){return{enumerable:!(1&t),configurable:!(2&t),writable:!(4&t),value:e}}},"60da":function(t,e,n){"use strict";var r=n("83ab"),o=n("d039"),i=n("df75"),a=n("7418"),u=n("d1e7"),c=n("7b0b"),f=n("44ad"),s=Object.assign,l=Object.defineProperty;t.exports=!s||o((function(){if(r&&1!==s({b:1},s(l({},"a",{enumerable:!0,get:function(){l(this,"b",{value:3,enumerable:!1})}}),{b:2})).b)return!0;var t={},e={},n=Symbol(),o="abcdefghijklmnopqrst";return t[n]=7,o.split("").forEach((function(t){e[t]=t})),7!=s({},t)[n]||i(s({},e)).join("")!=o}))?function(t,e){var n=c(t),o=arguments.length,s=1,l=a.f,d=u.f;while(o>s){var p,m=f(arguments[s++]),v=l?i(m).concat(l(m)):i(m),h=v.length,b=0;while(h>b)p=v[b++],r&&!d.call(m,p)||(n[p]=m[p])}return n}:s},"69f3":function(t,e,n){var r,o,i,a=n("7f9a"),u=n("da84"),c=n("861d"),f=n("9112"),s=n("5135"),l=n("f772"),d=n("d012"),p=u.WeakMap,m=function(t){return i(t)?o(t):r(t,{})},v=function(t){return function(e){var n;if(!c(e)||(n=o(e)).type!==t)throw TypeError("Incompatible receiver, "+t+" required");return n}};if(a){var h=new p,b=h.get,g=h.has,y=h.set;r=function(t,e){return y.call(h,t,e),e},o=function(t){return b.call(h,t)||{}},i=function(t){return g.call(h,t)}}else{var x=l("state");d[x]=!0,r=function(t,e){return f(t,x,e),e},o=function(t){return s(t,x)?t[x]:{}},i=function(t){return s(t,x)}}t.exports={set:r,get:o,has:i,enforce:m,getterFor:v}},"6eeb":function(t,e,n){var r=n("da84"),o=n("9112"),i=n("5135"),a=n("ce4e"),u=n("8925"),c=n("69f3"),f=c.get,s=c.enforce,l=String(String).split("String");(t.exports=function(t,e,n,u){var c=!!u&&!!u.unsafe,f=!!u&&!!u.enumerable,d=!!u&&!!u.noTargetGet;"function"==typeof n&&("string"!=typeof e||i(n,"name")||o(n,"name",e),s(n).source=l.join("string"==typeof e?e:"")),t!==r?(c?!d&&t[e]&&(f=!0):delete t[e],f?t[e]=n:o(t,e,n)):f?t[e]=n:a(e,n)})(Function.prototype,"toString",(function(){return"function"==typeof this&&f(this).source||u(this)}))},7418:function(t,e){e.f=Object.getOwnPropertySymbols},7839:function(t,e){t.exports=["constructor","hasOwnProperty","isPrototypeOf","propertyIsEnumerable","toLocaleString","toString","valueOf"]},"7b0b":function(t,e,n){var r=n("1d80");t.exports=function(t){return Object(r(t))}},"7f9a":function(t,e,n){var r=n("da84"),o=n("8925"),i=r.WeakMap;t.exports="function"===typeof i&&/native code/.test(o(i))},"825a":function(t,e,n){var r=n("861d");t.exports=function(t){if(!r(t))throw TypeError(String(t)+" is not an object");return t}},"83ab":function(t,e,n){var r=n("d039");t.exports=!r((function(){return 7!=Object.defineProperty({},1,{get:function(){return 7}})[1]}))},"861d":function(t,e){t.exports=function(t){return"object"===typeof t?null!==t:"function"===typeof t}},8925:function(t,e,n){var r=n("c6cd"),o=Function.toString;"function"!=typeof r.inspectSource&&(r.inspectSource=function(t){return o.call(t)}),t.exports=r.inspectSource},"90e3":function(t,e){var n=0,r=Math.random();t.exports=function(t){return"Symbol("+String(void 0===t?"":t)+")_"+(++n+r).toString(36)}},9112:function(t,e,n){var r=n("83ab"),o=n("9bf2"),i=n("5c6c");t.exports=r?function(t,e,n){return o.f(t,e,i(1,n))}:function(t,e,n){return t[e]=n,t}},"94ca":function(t,e,n){var r=n("d039"),o=/#|\.prototype\./,i=function(t,e){var n=u[a(t)];return n==f||n!=c&&("function"==typeof e?r(e):!!e)},a=i.normalize=function(t){return String(t).replace(o,".").toLowerCase()},u=i.data={},c=i.NATIVE="N",f=i.POLYFILL="P";t.exports=i},"9bf2":function(t,e,n){var r=n("83ab"),o=n("0cfb"),i=n("825a"),a=n("c04e"),u=Object.defineProperty;e.f=r?u:function(t,e,n){if(i(t),e=a(e,!0),i(n),o)try{return u(t,e,n)}catch(r){}if("get"in n||"set"in n)throw TypeError("Accessors not supported");return"value"in n&&(t[e]=n.value),t}},a691:function(t,e){var n=Math.ceil,r=Math.floor;t.exports=function(t){return isNaN(t=+t)?0:(t>0?r:n)(t)}},ad6d:function(t,e,n){"use strict";var r=n("825a");t.exports=function(){var t=r(this),e="";return t.global&&(e+="g"),t.ignoreCase&&(e+="i"),t.multiline&&(e+="m"),t.dotAll&&(e+="s"),t.unicode&&(e+="u"),t.sticky&&(e+="y"),e}},c04e:function(t,e,n){var r=n("861d");t.exports=function(t,e){if(!r(t))return t;var n,o;if(e&&"function"==typeof(n=t.toString)&&!r(o=n.call(t)))return o;if("function"==typeof(n=t.valueOf)&&!r(o=n.call(t)))return o;if(!e&&"function"==typeof(n=t.toString)&&!r(o=n.call(t)))return o;throw TypeError("Can't convert object to primitive value")}},c430:function(t,e){t.exports=!1},c6b6:function(t,e){var n={}.toString;t.exports=function(t){return n.call(t).slice(8,-1)}},c6cd:function(t,e,n){var r=n("da84"),o=n("ce4e"),i="__core-js_shared__",a=r[i]||o(i,{});t.exports=a},c8ba:function(t,e){var n;n=function(){return this}();try{n=n||new Function("return this")()}catch(r){"object"===typeof window&&(n=window)}t.exports=n},ca84:function(t,e,n){var r=n("5135"),o=n("fc6a"),i=n("4d64").indexOf,a=n("d012");t.exports=function(t,e){var n,u=o(t),c=0,f=[];for(n in u)!r(a,n)&&r(u,n)&&f.push(n);while(e.length>c)r(u,n=e[c++])&&(~i(f,n)||f.push(n));return f}},cc12:function(t,e,n){var r=n("da84"),o=n("861d"),i=r.document,a=o(i)&&o(i.createElement);t.exports=function(t){return a?i.createElement(t):{}}},cca6:function(t,e,n){var r=n("23e7"),o=n("60da");r({target:"Object",stat:!0,forced:Object.assign!==o},{assign:o})},ce4e:function(t,e,n){var r=n("da84"),o=n("9112");t.exports=function(t,e){try{o(r,t,e)}catch(n){r[t]=e}return e}},d012:function(t,e){t.exports={}},d039:function(t,e){t.exports=function(t){try{return!!t()}catch(e){return!0}}},d066:function(t,e,n){var r=n("428f"),o=n("da84"),i=function(t){return"function"==typeof t?t:void 0};t.exports=function(t,e){return arguments.length<2?i(r[t])||i(o[t]):r[t]&&r[t][e]||o[t]&&o[t][e]}},d1e7:function(t,e,n){"use strict";var r={}.propertyIsEnumerable,o=Object.getOwnPropertyDescriptor,i=o&&!r.call({1:2},1);e.f=i?function(t){var e=o(this,t);return!!e&&e.enumerable}:r},da84:function(t,e,n){(function(e){var n=function(t){return t&&t.Math==Math&&t};t.exports=n("object"==typeof globalThis&&globalThis)||n("object"==typeof window&&window)||n("object"==typeof self&&self)||n("object"==typeof e&&e)||Function("return this")()}).call(this,n("c8ba"))},df75:function(t,e,n){var r=n("ca84"),o=n("7839");t.exports=Object.keys||function(t){return r(t,o)}},e893:function(t,e,n){var r=n("5135"),o=n("56ef"),i=n("06cf"),a=n("9bf2");t.exports=function(t,e){for(var n=o(e),u=a.f,c=i.f,f=0;f<n.length;f++){var s=n[f];r(t,s)||u(t,s,c(e,s))}}},f772:function(t,e,n){var r=n("5692"),o=n("90e3"),i=r("keys");t.exports=function(t){return i[t]||(i[t]=o(t))}},fb15:function(t,e,n){"use strict";if(n.r(e),n.d(e,"InputFacade",(function(){return E})),n.d(e,"facade",(function(){return x})),n.d(e,"tokens",(function(){return i})),n.d(e,"masker",(function(){return g})),n.d(e,"filter",(function(){return P})),"undefined"!==typeof window){var r=window.document.currentScript,o=r&&r.src.match(/(.+\/)[^/]+\.js(\?.*)?$/);o&&(n.p=o[1])}var i={"#":{pattern:/\d/},X:{pattern:/[0-9a-z]/i},S:{pattern:/[a-z]/i},A:{pattern:/[a-z]/i,transform:t=>t.toLocaleUpperCase()},a:{pattern:/[a-z]/i,transform:t=>t.toLocaleLowerCase()},"\\":{escape:!0}};n("cca6"),n("25f0");const a="__input-facade__";function u(t){this.masked=this.unmasked=t||""}function c(){return new CustomEvent("input",{bubbles:!0,cancelable:!0,detail:{facade:!0}})}function f(t,e){return(Array.isArray(t)||"string"===typeof t)&&(t={mask:t}),Object.assign(t||{},e)}function s(t){const e=t instanceof HTMLInputElement?t:t.querySelector("input");if(!e)throw new Error("facade directive requires an input element");return e}function l(t){const{target:e,detail:n}=t;if(n&&n.facade)return!1;t.stopPropagation();const r=e.value,o=e.selectionEnd,{oldValue:i}=e[a];p(e,null,{emit:!1},t),d(t,r,o),i!==e.value&&e.dispatchEvent(c())}function d(t,e,n){const{target:r}=t,o=["text","tel","search",null].includes(r.getAttribute("type")),i=r[a]&&r[a].config;if(r!==document.activeElement||!o||!i.mask)return;const u=["insertText","insertFromPaste"].includes(t.inputType),c=u&&n==e.length;let f=u&&e[n-1];const s=r.value.toLocaleLowerCase();let l=n;if(c)l=s.length;else if(f){f=f.toLocaleLowerCase();let t=l;while(t<=s.length&&s.charAt(t-1)!==f)t++;l=t<=s.length?t:l-1}r.setSelectionRange(l,l),setTimeout((function(){r.setSelectionRange(l,l)}),0)}function p(t,e,{emit:n=!0,force:r=!1}={},o){const{config:i,oldValue:u}=t[a],f=e&&e.data.model?e.data.model.value:t.value;if(r||u!==f){let e=g(f,i);if(o&&"function"===typeof i.formatter){const n=i.formatter(e,o);if("string"===typeof n)e=g(n,i);else if(!1===n)return void(t.value=u)}t[a].oldValue=e.masked,t.unmaskedValue=e.unmasked,t.value!==e.masked&&(t.value=e.masked),n&&t.dispatchEvent(c())}}let m=i;function v(t){t&&(m=t)}function h(t,e){const n=e.masks.slice().sort((t,e)=>t.length-e.length),r=t=>Object.assign({},e,t),o=(e,n)=>{const o=b(t,r({mask:n})),i=e.unmasked.length,a=o.unmasked.length;return a>i?o:e};if(!n.length)return new u;const i=n.shift();let a=b(t,r({mask:i}));while(n.length){const t=n.shift();a=o(a,t)}return a}function b(t,e){let{mask:n="",tokens:r,prefill:o=!1,short:i=!1}=e;r=r?Object.assign({},m,r):m;let a=new u,c=!1,f=0,s=0,l="";while(s<n.length){const e=n[s],o=r[e];let i=t[f];if(!i&&o)break;if(o&&!c){if(o.escape){c=!0,s++;continue}o.pattern.test(i)&&(i=o.transform?o.transform(i):i,a.unmasked+=i,a.masked+=l+i,l="",s++),f++}else l+=e,i===e&&f++,c=!1,s++}return(o&&!a.unmasked||!i&&a.unmasked)&&(a.masked+=l),a}function g(t,e){return t=(t||"").toString(),e=f(e),e.mask?Array.isArray(e.mask)?h(t,Object.assign({},e,{masks:e.mask})):b(t,e):new u(t)}const y=a;var x={bind:(t,{value:e,modifiers:n},r)=>{t=s(t),t.addEventListener("input",l,!0),t[y]={config:f(e,n)},p(t,r)},update:(t,{value:e,oldValue:n,modifiers:r},o)=>{t=s(t),e!==n?(t[y].config=f(e,r),p(t,o,{force:!0})):p(t,o)},unbind:t=>t.removeEventListener("input",l,!0)},k=function(){var t=this,e=t.$createElement,n=t._self._c||e;return n("input",{directives:[{name:"facade",rawName:"v-facade",value:t.config,expression:"config"}],attrs:{type:"text"},domProps:{value:t.maskedValue},on:{input:t.onInput,change:t.onChange,blur:function(e){return t.$emit("blur")},focus:function(e){return t.$emit("focus")}}})},w=[],j={name:"InputFacade",props:{formatter:Function,lazy:{type:Boolean,default:!1},mask:[String,Array],masked:{type:Boolean,default:!1},prefill:{type:Boolean,default:!1},short:{type:Boolean,default:!1},tokens:Object,value:[String,Number]},directives:{facade:x},data(){return{maskedValue:this.value,unmaskedValue:null}},watch:{value(t){t!==this.emittedValue&&(this.maskedValue=t)},mask(t){t||(this.maskedValue=this.unmaskedValue)},masked(){this.emitInput()}},computed:{config(){return{mask:this.mask,tokens:this.tokens,formatter:this.formatter,prefill:this.prefill,short:this.short}},emittedValue(){return this.mask&&this.masked?this.maskedValue:this.unmaskedValue}},methods:{onInput({target:t}){this.maskedValue=t.value,this.unmaskedValue=t.unmaskedValue,this.lazy||this.emitInput()},onChange(){this.$emit("change",this.emittedValue),this.lazy&&this.emitInput()},emitInput(){this.$emit("input",this.emittedValue)}}},O=j;function S(t,e,n,r,o,i,a,u){var c,f="function"===typeof t?t.options:t;if(e&&(f.render=e,f.staticRenderFns=n,f._compiled=!0),r&&(f.functional=!0),i&&(f._scopeId="data-v-"+i),a?(c=function(t){t=t||this.$vnode&&this.$vnode.ssrContext||this.parent&&this.parent.$vnode&&this.parent.$vnode.ssrContext,t||"undefined"===typeof __VUE_SSR_CONTEXT__||(t=__VUE_SSR_CONTEXT__),o&&o.call(this,t),t&&t._registeredComponents&&t._registeredComponents.add(a)},f._ssrRegister=c):o&&(c=u?function(){o.call(this,(f.functional?this.parent:this).$root.$options.shadowRoot)}:o),c)if(f.functional){f._injectStyles=c;var s=f.render;f.render=function(t,e){return c.call(e),s(t,e)}}else{var l=f.beforeCreate;f.beforeCreate=l?[].concat(l,c):[c]}return{exports:t,options:f}}var _=S(O,k,w,!1,null,null,null),E=_.exports;function V(t,e={}){e.tokens&&v(e.tokens),t.component(E.name,E),t.directive(e.name||"facade",x),t.filter(e.name||"facade",P)}function P(t,e){return g(t,e).masked}var T=V;"undefined"!==typeof window&&window.Vue&&window.Vue.use(V);e["default"]=T},fc6a:function(t,e,n){var r=n("44ad"),o=n("1d80");t.exports=function(t){return r(o(t))}}})}));
-
-/***/ }),
-
 /***/ "9ed3":
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -3064,6 +3093,28 @@ if (isForced(NUMBER, !NativeNumber(' 0o1') || !NativeNumber('0b1') || NativeNumb
   NumberPrototype.constructor = NumberWrapper;
   redefine(global, NUMBER, NumberWrapper);
 }
+
+
+/***/ }),
+
+/***/ "ab13":
+/***/ (function(module, exports, __webpack_require__) {
+
+var wellKnownSymbol = __webpack_require__("b622");
+
+var MATCH = wellKnownSymbol('match');
+
+module.exports = function (METHOD_NAME) {
+  var regexp = /./;
+  try {
+    '/./'[METHOD_NAME](regexp);
+  } catch (e) {
+    try {
+      regexp[MATCH] = false;
+      return '/./'[METHOD_NAME](regexp);
+    } catch (f) { /* empty */ }
+  } return false;
+};
 
 
 /***/ }),
@@ -3630,6 +3681,32 @@ module.exports = function (object, names) {
   }
   return result;
 };
+
+
+/***/ }),
+
+/***/ "caad":
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var $ = __webpack_require__("23e7");
+var $includes = __webpack_require__("4d64").includes;
+var addToUnscopables = __webpack_require__("44d2");
+var arrayMethodUsesToLength = __webpack_require__("ae40");
+
+var USES_TO_LENGTH = arrayMethodUsesToLength('indexOf', { ACCESSORS: true, 1: 0 });
+
+// `Array.prototype.includes` method
+// https://tc39.github.io/ecma262/#sec-array.prototype.includes
+$({ target: 'Array', proto: true, forced: !USES_TO_LENGTH }, {
+  includes: function includes(el /* , fromIndex = 0 */) {
+    return $includes(this, el, arguments.length > 1 ? arguments[1] : undefined);
+  }
+});
+
+// https://tc39.github.io/ecma262/#sec-array.prototype-@@unscopables
+addToUnscopables('includes');
 
 
 /***/ }),
@@ -4501,270 +4578,763 @@ var web_dom_collections_for_each = __webpack_require__("159b");
 var external_commonjs_vue_commonjs2_vue_root_Vue_ = __webpack_require__("8bbf");
 var external_commonjs_vue_commonjs2_vue_root_Vue_default = /*#__PURE__*/__webpack_require__.n(external_commonjs_vue_commonjs2_vue_root_Vue_);
 
-// EXTERNAL MODULE: ./node_modules/vue-input-facade/dist/vue-input-facade.umd.min.js
-var vue_input_facade_umd_min = __webpack_require__("9c87");
-var vue_input_facade_umd_min_default = /*#__PURE__*/__webpack_require__.n(vue_input_facade_umd_min);
+// EXTERNAL MODULE: ./node_modules/core-js/modules/es.array.filter.js
+var es_array_filter = __webpack_require__("4de4");
 
-// CONCATENATED MODULE: ./node_modules/vue-textarea-autosize/dist/vue-textarea-autosize.esm.js
-/*!
- * vue-textarea-autosize v1.1.1 
- * (c) 2019 Saymon
- * Released under the MIT License.
- */
-//
-//
-//
-//
-//
-//
-//
-var script = {
-  name: 'TextareaAutosize',
-  props: {
-    value: {
-      type: [String, Number],
-      default: ''
-    },
-    autosize: {
-      type: Boolean,
-      default: true
-    },
-    minHeight: {
-      type: [Number],
-      'default': null
-    },
-    maxHeight: {
-      type: [Number],
-      'default': null
-    },
+// EXTERNAL MODULE: ./node_modules/core-js/modules/es.function.name.js
+var es_function_name = __webpack_require__("b0c0");
 
-    /*
-     * Force !important for style properties
-     */
-    important: {
-      type: [Boolean, Array],
-      default: false
+// CONCATENATED MODULE: ./src/components/vue-input-facade/tokens.js
+/* harmony default export */ var vue_input_facade_tokens = ({
+  '#': {
+    pattern: /\d/
+  },
+  X: {
+    pattern: /[0-9a-z]/i
+  },
+  S: {
+    pattern: /[a-z]/i
+  },
+  A: {
+    pattern: /[a-z]/i,
+    transform: function transform(v) {
+      return v.toLocaleUpperCase();
     }
+  },
+  a: {
+    pattern: /[a-z]/i,
+    transform: function transform(v) {
+      return v.toLocaleLowerCase();
+    }
+  },
+  '\\': {
+    escape: true
+  }
+});
+// EXTERNAL MODULE: ./node_modules/core-js/modules/es.array.slice.js
+var es_array_slice = __webpack_require__("fb6a");
+
+// EXTERNAL MODULE: ./node_modules/core-js/modules/es.object.to-string.js
+var es_object_to_string = __webpack_require__("d3b7");
+
+// EXTERNAL MODULE: ./node_modules/core-js/modules/es.regexp.to-string.js
+var es_regexp_to_string = __webpack_require__("25f0");
+
+// EXTERNAL MODULE: ./node_modules/core-js/modules/es.array.includes.js
+var es_array_includes = __webpack_require__("caad");
+
+// CONCATENATED MODULE: ./src/components/vue-input-facade/core.js
+
+
+var CONFIG_KEY = '__input-facade__';
+function FacadeValue(val) {
+  this.masked = this.unmasked = val || '';
+}
+/**
+ * Creates a CustomEvent('input') with detail = { facade: true }
+ * used as a way to identify our own input event
+ */
+
+function FacadeInputEvent() {
+  return new CustomEvent('input', {
+    bubbles: true,
+    cancelable: true,
+    detail: {
+      facade: true
+    }
+  });
+}
+/**
+ * Transform an array or string config into an object
+ *
+ * @param {object} config The mask config object
+ * @param {object} modifiers An object of modifier flags that can influence the masking process
+ */
+
+function normalizeConfig(config, modifiers) {
+  if (Array.isArray(config) || typeof config === 'string') {
+    config = {
+      mask: config
+    };
+  }
+
+  return Object.assign(config || {}, modifiers);
+}
+/**
+ * ensure that the element we're attaching to is an input element
+ * if not try to find an input element in this elements childrens
+ *
+ * @param {HTMLInputElement} el
+ */
+
+function getInputElement(el) {
+  var inputElement = el instanceof HTMLInputElement ? el : el.querySelector('input');
+  /* istanbul ignore next */
+
+  if (!inputElement) {
+    throw new Error('facade directive requires an input element');
+  }
+
+  return inputElement;
+}
+/**
+ * Input event handler
+ *
+ * @param {Event} event The event object
+ */
+
+function inputHandler(event) {
+  var target = event.target,
+      detail = event.detail; // We dont need to run this method on the event we emit (prevent event loop)
+
+  if (detail && detail.facade) {
+    return false;
+  } // since we will be emitting our own custom input event
+  // we can stop propagation of this native event
+
+
+  event.stopPropagation();
+  var originalValue = target.value;
+  var originalPosition = target.selectionEnd;
+  var oldValue = target[CONFIG_KEY].oldValue;
+  updateValue(target, null, {
+    emit: false
+  }, event);
+  updateCursor(event, originalValue, originalPosition);
+
+  if (oldValue !== target.value) {
+    target.dispatchEvent(FacadeInputEvent());
+  }
+}
+/**
+ * Updates the cursor position to the right place after the masking rule was applied
+ *
+ * @param {InputEvent} event the event that trigger this update
+ * @param {String} originalValue the original input value, prior to masking
+ * @param {Number} originalPosition the original cursor position
+ */
+
+function updateCursor(event, originalValue, originalPosition) {
+  var target = event.target; // setSelectionRange applies only to inputs of types text, search, URL, tel and password.
+  // https://developer.mozilla.org/en-US/docs/Web/API/HTMLInputElement/setSelectionRange
+
+  var supportedInputType = ['text', 'tel', 'search', null].includes(target.getAttribute('type'));
+  var config = target[CONFIG_KEY] && target[CONFIG_KEY].config;
+
+  if (target !== document.activeElement || !supportedInputType || !config.mask) {
+    return;
+  } // get some information about the cursor based on the original value
+
+
+  var isInsertEvent = ['insertText', 'insertFromPaste'].includes(event.inputType);
+  var wasCursorAtEnd = isInsertEvent && originalPosition == originalValue.length;
+  var lastInsertedChar = isInsertEvent && originalValue[originalPosition - 1];
+  var newValue = target.value.toLocaleLowerCase(); // set the cursor position to an appropriate location
+
+  var cursorPosition = originalPosition;
+
+  if (wasCursorAtEnd) {
+    cursorPosition = newValue.length;
+  } else if (lastInsertedChar) {
+    lastInsertedChar = lastInsertedChar.toLocaleLowerCase();
+    var newPosition = cursorPosition; // if the last inserted char was changed, increment position until find it again
+
+    while (newPosition <= newValue.length && newValue.charAt(newPosition - 1) !== lastInsertedChar) {
+      newPosition++;
+    } // if we didnt find the digit must be an unacceptable char, leave the cursor where it was
+
+
+    cursorPosition = newPosition <= newValue.length ? newPosition : cursorPosition - 1;
+  }
+
+  target.setSelectionRange(cursorPosition, cursorPosition);
+  setTimeout(function () {
+    /* istanbul ignore next */
+    target.setSelectionRange(cursorPosition, cursorPosition);
+  }, 0);
+}
+/**
+ * Updates the element's value and unmasked value based on the masking config rules
+ *
+ * @param {HTMLInputElement} el The input element to update
+ * @param {object} [options]
+ * @param {Boolean} options.emit Wether to dispatch a new InputEvent or not
+ * @param {Boolean} options.force Forces the update even if the old value and the new value are the same
+ * @param {Event} [event] The event that triggered this this update, null if not triggered by an input event
+ */
+
+function updateValue(el, vnode) {
+  var _ref = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
+      _ref$emit = _ref.emit,
+      emit = _ref$emit === void 0 ? true : _ref$emit,
+      _ref$force = _ref.force,
+      force = _ref$force === void 0 ? false : _ref$force;
+
+  var event = arguments.length > 3 ? arguments[3] : undefined;
+  var _el$CONFIG_KEY = el[CONFIG_KEY],
+      config = _el$CONFIG_KEY.config,
+      oldValue = _el$CONFIG_KEY.oldValue;
+  var currentValue = vnode && vnode.data.model ? vnode.data.model.value : el.value;
+  oldValue = oldValue || '';
+  currentValue = currentValue || '';
+
+  if (force || oldValue !== currentValue) {
+    var newValue = masker(currentValue, config);
+
+    if (event && typeof config.formatter === 'function') {
+      var formattedValue = config.formatter(newValue, event);
+
+      if (typeof formattedValue === 'string') {
+        newValue = masker(formattedValue, config);
+      } else if (formattedValue === false) {
+        el.value = oldValue;
+        return;
+      }
+    }
+
+    el[CONFIG_KEY].oldValue = newValue.masked;
+    el.unmaskedValue = newValue.unmasked; // safari makes the cursor jump to the end if el.value gets assign even if to the same value
+
+    if (el.value !== newValue.masked) {
+      el.value = newValue.masked;
+    } // this part needs to be outside the above IF statement for vuetify in firefox
+    // drawback is that we endup with two's input events in firefox
+
+
+    emit && el.dispatchEvent(FacadeInputEvent());
+  }
+}
+// CONCATENATED MODULE: ./src/components/vue-input-facade/masker.js
+
+
+
+
+
+var tokenDefinitions = vue_input_facade_tokens;
+/**
+ * Overrides the default global token definitions
+ *
+ * @param {object} tokens the new token object
+ */
+
+function setTokens(tokens) {
+  if (!tokens) return;
+  tokenDefinitions = tokens;
+}
+/**
+ * Given an array of masks, determines which one is the appropriate one based on the value
+ *
+ * @param {String} inputValue the inputValue value to mask
+ * @param {object} config
+ * @param {Array} config.masks the list of masks to choose from
+ * @returns {FacadeValue} facade value object
+ */
+
+function dynamic(inputValue, config) {
+  var masks = config.masks.slice().sort(function (a, b) {
+    return a.length - b.length;
+  });
+
+  var withConfig = function withConfig(overrides) {
+    return Object.assign({}, config, overrides);
+  }; // this method will choose a facade based on which one exposes more data from the input
+
+
+  var chooseBestFacade = function chooseBestFacade(currentValue, nextMask) {
+    var nextValue = formatter(inputValue, withConfig({
+      mask: nextMask
+    }));
+    var currentLength = currentValue.unmasked.length;
+    var nextLength = nextValue.unmasked.length;
+    return nextLength > currentLength ? nextValue : currentValue;
+  }; // empty masks array
+
+
+  if (!masks.length) {
+    return new FacadeValue();
+  }
+
+  var firstMask = masks.shift();
+  var output = formatter(inputValue, withConfig({
+    mask: firstMask
+  }));
+
+  while (masks.length) {
+    var nextMask = masks.shift();
+    output = chooseBestFacade(output, nextMask);
+  }
+
+  return output;
+}
+/**
+ * Formats the value based on the given masking rule
+ *
+ * @param {string} value the value to mask
+ * @param {object} config
+ * @param {string} config.mask the masking string
+ * @param {object} config.tokens the tokens to add/override to the global
+ * @param {boolean} config.prefill whether or not to add masking characters to the input before the user types
+ * @param {boolean} config.short to keep the string as short as possible (not append extra chars at the end)
+ */
+
+function formatter(value, config) {
+  var _config$mask = config.mask,
+      mask = _config$mask === void 0 ? '' : _config$mask,
+      tokens = config.tokens,
+      _config$prefill = config.prefill,
+      prefill = _config$prefill === void 0 ? false : _config$prefill,
+      _config$short = config.short,
+      short = _config$short === void 0 ? false : _config$short; // append/override global tokens instead of complete override
+
+  tokens = tokens ? Object.assign({}, tokenDefinitions, tokens) : tokenDefinitions;
+  var output = new FacadeValue();
+  var escaped = false;
+  var valueIndex = 0;
+  var maskIndex = 0;
+  var accumulator = '';
+
+  while (maskIndex < mask.length) {
+    var maskChar = mask[maskIndex];
+    var _masker = tokens[maskChar];
+    var char = value[valueIndex]; // no more input characters and next character is a masked one
+
+    if (!char && _masker) break;
+
+    if (_masker && !escaped) {
+      // when is escape char, do not mask, just continue
+      if (_masker.escape) {
+        escaped = true;
+        maskIndex++;
+        continue;
+      }
+
+      if (_masker.pattern.test(char)) {
+        char = _masker.transform ? _masker.transform(char) : char;
+        output.unmasked += char;
+        output.masked += accumulator + char;
+        accumulator = '';
+        maskIndex++;
+      }
+
+      valueIndex++;
+    } else {
+      accumulator += maskChar;
+      if (char === maskChar) valueIndex++; // user typed the same char
+
+      escaped = false;
+      maskIndex++;
+    }
+  } // if there is no unmasked value, set masked to empty to avoid showing masking
+  // characters in an otherwise empty input, unless prefill is set ot true
+
+
+  if (prefill && !output.unmasked || !short && output.unmasked) {
+    output.masked += accumulator;
+  }
+
+  return output;
+}
+/**
+ * Facade to formatter/dynamic when mask is String or Array
+ *
+ * @param {String} value the value to mask
+ * @param {*} config the masking config
+ * @returns {FacadeValue} facade value object
+ */
+
+function masker(value, config) {
+  // ensure we have proper input
+  value = (value || '').toString();
+  config = normalizeConfig(config); // disable on empty mask
+
+  if (!config.mask) {
+    return new FacadeValue(value);
+  }
+
+  return Array.isArray(config.mask) ? dynamic(value, Object.assign({}, config, {
+    masks: config.mask
+  })) : formatter(value, config);
+}
+// CONCATENATED MODULE: ./src/components/vue-input-facade/directive.js
+
+var directive_CONFIG_KEY = CONFIG_KEY;
+/* harmony default export */ var directive = ({
+  bind: function bind(el, _ref, vnode) {
+    var value = _ref.value,
+        modifiers = _ref.modifiers;
+    el = getInputElement(el);
+    el.addEventListener('input', inputHandler, true);
+    var config = normalizeConfig(value, modifiers);
+    el[directive_CONFIG_KEY] = {
+      config: config
+    }; // set initial value
+
+    updateValue(el, vnode, {
+      emit: false,
+      force: config.prefill
+    });
+  },
+  update: function update(el, _ref2, vnode) {
+    var value = _ref2.value,
+        oldValue = _ref2.oldValue,
+        modifiers = _ref2.modifiers;
+    el = getInputElement(el);
+
+    if (value !== oldValue) {
+      el[directive_CONFIG_KEY].config = normalizeConfig(value, modifiers);
+      updateValue(el, vnode, {
+        force: true
+      });
+    } else {
+      updateValue(el, vnode);
+    }
+  },
+  unbind: function unbind(el) {
+    el.removeEventListener('input', inputHandler, true);
+  }
+});
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"2001146f-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/components/vue-input-facade/component.vue?vue&type=template&id=02eb5694&
+var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('input',{directives:[{name:"facade",rawName:"v-facade",value:(_vm.config),expression:"config"}],attrs:{"type":"text"},domProps:{"value":_vm.maskedValue},on:{"input":_vm.onInput,"change":_vm.onChange,"blur":function($event){return _vm.$emit('blur')},"focus":function($event){return _vm.$emit('focus')}}})}
+var staticRenderFns = []
+
+
+// CONCATENATED MODULE: ./src/components/vue-input-facade/component.vue?vue&type=template&id=02eb5694&
+
+// EXTERNAL MODULE: ./node_modules/core-js/modules/es.number.constructor.js
+var es_number_constructor = __webpack_require__("a9e3");
+
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/components/vue-input-facade/component.vue?vue&type=script&lang=js&
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+/**
+ * The component is basically a wrapper around a native input element, as such it inherits all
+ * properties available to [HTMLInputElement](https://developer.mozilla.org/en-US/docs/Web/API/HTMLInputElement).
+ *
+ * However it provides a cleaner and more straight forward interface to the directive's features.
+ *
+ * @example ../docs/component.md
+ */
+
+/* harmony default export */ var componentvue_type_script_lang_js_ = ({
+  name: 'InputFacade',
+  props: {
+    /**
+     * A function to format the value after applying the mask. The function will receive an
+     * object with the masked and unmasked value. The result of this function will determine
+     * what happens with the value.
+     * <br />
+     * If a string is returned, then that string will pass through the masker function once more and its value
+     * will be set to the input.  If false (boolean) is returned, the input will be rejected and the
+     * previous value will be restored.  Otherwise the facade logic will continue as usual.
+     * @since v1.3
+     */
+    formatter: Function,
+
+    /**
+     * Vue's v-model .lazy modifier does not currently work with custom components. If you wish to have your v-model
+     * updated only during the change event instead of on input, enable this property. <b>Note: This works by supressing
+     * input events and only emitting a single input event at the same time as the change event.</b>
+     * @since v1.3
+     */
+    lazy: {
+      type: Boolean,
+      default: false
+    },
+
+    /**
+     * The mask pattern for this input, it could be a single pattern or multiple patterns when its an array.
+     */
+    mask: [String, Array],
+
+    /**
+     * Whether to emit the value masked or unmasked
+     */
+    masked: {
+      type: Boolean,
+      default: false
+    },
+
+    /**
+     * If the mask starts with static charaters, prefill the field with said characters
+     * @since v1.3
+     */
+    prefill: {
+      type: Boolean,
+      default: false
+    },
+
+    /**
+     * Keep the value short by not showing static characters until after typing
+     * @since v1.3
+     */
+    short: {
+      type: Boolean,
+      default: false
+    },
+
+    /**
+     * Token object to override the defaults with
+     */
+    tokens: Object,
+
+    /**
+     * The input's value
+     * @model
+     */
+    value: [String, Number]
+  },
+  directives: {
+    facade: directive
   },
   data: function data() {
     return {
-      // data property for v-model binding with real textarea tag
-      val: null,
-      // works when content height becomes more then value of the maxHeight property
-      maxHeightScroll: false,
-      height: 'auto'
+      maskedValue: this.value,
+      unmaskedValue: null
     };
   },
-  computed: {
-    computedStyles: function computedStyles() {
-      if (!this.autosize) return {};
-      return {
-        resize: !this.isResizeImportant ? 'none' : 'none !important',
-        height: this.height,
-        overflow: this.maxHeightScroll ? 'auto' : !this.isOverflowImportant ? 'hidden' : 'hidden !important'
-      };
+  watch: {
+    value: function value(newValue) {
+      // avoid trigering the directive's update hook when we emit
+      // the unmasked value to the parent component
+      if (newValue !== this.emittedValue) {
+        this.maskedValue = newValue;
+      }
     },
-    isResizeImportant: function isResizeImportant() {
-      var imp = this.important;
-      return imp === true || Array.isArray(imp) && imp.includes('resize');
+    mask: function mask(newMask) {
+      if (!newMask) {
+        // when removing the masking rule, set the displayed value to the unmasked
+        // to remove any unwanted masking characters from the input
+        this.maskedValue = this.unmaskedValue;
+      }
     },
-    isOverflowImportant: function isOverflowImportant() {
-      var imp = this.important;
-      return imp === true || Array.isArray(imp) && imp.includes('overflow');
-    },
-    isHeightImportant: function isHeightImportant() {
-      var imp = this.important;
-      return imp === true || Array.isArray(imp) && imp.includes('height');
+    masked: function masked() {
+      this.emitInput();
     }
   },
-  watch: {
-    value: function value(val) {
-      this.val = val;
+  computed: {
+    config: function config() {
+      return {
+        mask: this.mask,
+        tokens: this.tokens,
+        formatter: this.formatter,
+        prefill: this.prefill,
+        short: this.short
+      };
     },
-    val: function val(_val) {
-      this.$nextTick(this.resize);
-      this.$emit('input', _val);
-    },
-    minHeight: function minHeight() {
-      this.$nextTick(this.resize);
-    },
-    maxHeight: function maxHeight() {
-      this.$nextTick(this.resize);
-    },
-    autosize: function autosize(val) {
-      if (val) this.resize();
+    emittedValue: function emittedValue() {
+      return this.mask && this.masked ? this.maskedValue : this.unmaskedValue;
     }
   },
   methods: {
-    resize: function resize() {
-      var _this = this;
+    onInput: function onInput(_ref) {
+      var target = _ref.target;
+      this.maskedValue = target.value;
+      this.unmaskedValue = target.unmaskedValue;
 
-      var important = this.isHeightImportant ? 'important' : '';
-      this.height = "auto".concat(important ? ' !important' : '');
-      this.$nextTick(function () {
-        var contentHeight = _this.$el.scrollHeight + 1;
-
-        if (_this.minHeight) {
-          contentHeight = contentHeight < _this.minHeight ? _this.minHeight : contentHeight;
-        }
-
-        if (_this.maxHeight) {
-          if (contentHeight > _this.maxHeight) {
-            contentHeight = _this.maxHeight;
-            _this.maxHeightScroll = true;
-          } else {
-            _this.maxHeightScroll = false;
-          }
-        }
-
-        var heightVal = contentHeight + 'px';
-        _this.height = "".concat(heightVal).concat(important ? ' !important' : '');
-      });
-      return this;
-    }
-  },
-  created: function created() {
-    this.val = this.value;
-  },
-  mounted: function mounted() {
-    this.resize();
-  }
-};
-
-function normalizeComponent(template, style, script, scopeId, isFunctionalTemplate, moduleIdentifier
-/* server only */
-, shadowMode, createInjector, createInjectorSSR, createInjectorShadow) {
-  if (typeof shadowMode !== 'boolean') {
-    createInjectorSSR = createInjector;
-    createInjector = shadowMode;
-    shadowMode = false;
-  } // Vue.extend constructor export interop.
-
-
-  var options = typeof script === 'function' ? script.options : script; // render functions
-
-  if (template && template.render) {
-    options.render = template.render;
-    options.staticRenderFns = template.staticRenderFns;
-    options._compiled = true; // functional template
-
-    if (isFunctionalTemplate) {
-      options.functional = true;
-    }
-  } // scopedId
-
-
-  if (scopeId) {
-    options._scopeId = scopeId;
-  }
-
-  var hook;
-
-  if (moduleIdentifier) {
-    // server build
-    hook = function hook(context) {
-      // 2.3 injection
-      context = context || // cached call
-      this.$vnode && this.$vnode.ssrContext || // stateful
-      this.parent && this.parent.$vnode && this.parent.$vnode.ssrContext; // functional
-      // 2.2 with runInNewContext: true
-
-      if (!context && typeof __VUE_SSR_CONTEXT__ !== 'undefined') {
-        context = __VUE_SSR_CONTEXT__;
-      } // inject component styles
-
-
-      if (style) {
-        style.call(this, createInjectorSSR(context));
-      } // register component module identifier for async chunk inference
-
-
-      if (context && context._registeredComponents) {
-        context._registeredComponents.add(moduleIdentifier);
+      if (!this.lazy) {
+        this.emitInput();
       }
-    }; // used by ssr in case component is cached and beforeCreate
+    },
+    onChange: function onChange() {
+      /**
+       * Fires when the value has been commited on the input. Usually on blur.
+       * @param {String} value The input's current value, masked or unmasked.
+       */
+      this.$emit('change', this.emittedValue);
+
+      if (this.lazy) {
+        this.emitInput();
+      }
+    },
+    emitInput: function emitInput() {
+      /**
+       * Fires when the value of the input has been changed.
+       * @param {String} value The input's current value, masked or unmasked.
+       */
+      this.$emit('input', this.emittedValue);
+    }
+  }
+});
+// CONCATENATED MODULE: ./src/components/vue-input-facade/component.vue?vue&type=script&lang=js&
+ /* harmony default export */ var vue_input_facade_componentvue_type_script_lang_js_ = (componentvue_type_script_lang_js_); 
+// CONCATENATED MODULE: ./node_modules/vue-loader/lib/runtime/componentNormalizer.js
+/* globals __VUE_SSR_CONTEXT__ */
+
+// IMPORTANT: Do NOT use ES2015 features in this file (except for modules).
+// This module is a runtime utility for cleaner component module output and will
+// be included in the final webpack user bundle.
+
+function normalizeComponent (
+  scriptExports,
+  render,
+  staticRenderFns,
+  functionalTemplate,
+  injectStyles,
+  scopeId,
+  moduleIdentifier, /* server only */
+  shadowMode /* vue-cli only */
+) {
+  // Vue.extend constructor export interop
+  var options = typeof scriptExports === 'function'
+    ? scriptExports.options
+    : scriptExports
+
+  // render functions
+  if (render) {
+    options.render = render
+    options.staticRenderFns = staticRenderFns
+    options._compiled = true
+  }
+
+  // functional template
+  if (functionalTemplate) {
+    options.functional = true
+  }
+
+  // scopedId
+  if (scopeId) {
+    options._scopeId = 'data-v-' + scopeId
+  }
+
+  var hook
+  if (moduleIdentifier) { // server build
+    hook = function (context) {
+      // 2.3 injection
+      context =
+        context || // cached call
+        (this.$vnode && this.$vnode.ssrContext) || // stateful
+        (this.parent && this.parent.$vnode && this.parent.$vnode.ssrContext) // functional
+      // 2.2 with runInNewContext: true
+      if (!context && typeof __VUE_SSR_CONTEXT__ !== 'undefined') {
+        context = __VUE_SSR_CONTEXT__
+      }
+      // inject component styles
+      if (injectStyles) {
+        injectStyles.call(this, context)
+      }
+      // register component module identifier for async chunk inferrence
+      if (context && context._registeredComponents) {
+        context._registeredComponents.add(moduleIdentifier)
+      }
+    }
+    // used by ssr in case component is cached and beforeCreate
     // never gets called
-
-
-    options._ssrRegister = hook;
-  } else if (style) {
-    hook = shadowMode ? function () {
-      style.call(this, createInjectorShadow(this.$root.$options.shadowRoot));
-    } : function (context) {
-      style.call(this, createInjector(context));
-    };
+    options._ssrRegister = hook
+  } else if (injectStyles) {
+    hook = shadowMode
+      ? function () {
+        injectStyles.call(
+          this,
+          (options.functional ? this.parent : this).$root.$options.shadowRoot
+        )
+      }
+      : injectStyles
   }
 
   if (hook) {
     if (options.functional) {
+      // for template-only hot-reload because in that case the render fn doesn't
+      // go through the normalizer
+      options._injectStyles = hook
       // register for functional component in vue file
-      var originalRender = options.render;
-
-      options.render = function renderWithStyleInjection(h, context) {
-        hook.call(context);
-        return originalRender(h, context);
-      };
+      var originalRender = options.render
+      options.render = function renderWithStyleInjection (h, context) {
+        hook.call(context)
+        return originalRender(h, context)
+      }
     } else {
       // inject component registration as beforeCreate hook
-      var existing = options.beforeCreate;
-      options.beforeCreate = existing ? [].concat(existing, hook) : [hook];
+      var existing = options.beforeCreate
+      options.beforeCreate = existing
+        ? [].concat(existing, hook)
+        : [hook]
     }
   }
 
-  return script;
+  return {
+    exports: scriptExports,
+    options: options
+  }
 }
 
-var normalizeComponent_1 = normalizeComponent;
+// CONCATENATED MODULE: ./src/components/vue-input-facade/component.vue
 
-/* script */
-const __vue_script__ = script;
 
-/* template */
-var __vue_render__ = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('textarea',{directives:[{name:"model",rawName:"v-model",value:(_vm.val),expression:"val"}],style:(_vm.computedStyles),domProps:{"value":(_vm.val)},on:{"focus":_vm.resize,"input":function($event){if($event.target.composing){ return; }_vm.val=$event.target.value;}}})};
-var __vue_staticRenderFns__ = [];
 
-  /* style */
-  const __vue_inject_styles__ = undefined;
-  /* scoped */
-  const __vue_scope_id__ = undefined;
-  /* module identifier */
-  const __vue_module_identifier__ = undefined;
-  /* functional template */
-  const __vue_is_functional_template__ = false;
-  /* style inject */
+
+
+/* normalize component */
+
+var component = normalizeComponent(
+  vue_input_facade_componentvue_type_script_lang_js_,
+  render,
+  staticRenderFns,
+  false,
+  null,
+  null,
+  null
   
-  /* style inject SSR */
-  
+)
 
-  
-  var TextareaAutosize = normalizeComponent_1(
-    { render: __vue_render__, staticRenderFns: __vue_staticRenderFns__ },
-    __vue_inject_styles__,
-    __vue_script__,
-    __vue_scope_id__,
-    __vue_is_functional_template__,
-    __vue_module_identifier__,
-    undefined,
-    undefined
-  );
+/* harmony default export */ var vue_input_facade_component = (component.exports);
+// CONCATENATED MODULE: ./src/components/vue-input-facade/plugin.js
 
-var version = '1.1.1';
 
-var vue_textarea_autosize_esm_install = function install(Vue) {
-  Vue.component('TextareaAutosize', TextareaAutosize);
-};
 
-var vue_textarea_autosize_esm_plugin = {
-  install: vue_textarea_autosize_esm_install,
-  version: version
-};
+
+
+
+/**
+ * Vue plugin definittion
+ *
+ * @param {Vue} Vue the vue instance
+ * @param {Object} options.tokens the tokens to use as global tokens
+ * @param {Object} options.name the tokens to use as global tokens
+ */
+
+function plugin_install(Vue) {
+  var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+  // override the default tokens
+  if (options.tokens) {
+    setTokens(options.tokens);
+  }
+
+  Vue.component(vue_input_facade_component.name, vue_input_facade_component);
+  Vue.directive(options.name || 'facade', directive);
+  Vue.filter(options.name || 'facade', filter);
+}
+/**
+ * Utility function to be used as a vue filter
+ *
+ * @param {String} value the value to apply the filter to
+ * @param {*} config the masking config
+ * @returns {string} the masked value as returned by the masker function
+ */
+
+
+function filter(value, config) {
+  return masker(value, config).masked;
+}
+
+/* harmony default export */ var vue_input_facade_plugin = (plugin_install);
+ // Install by default if included from script tag
 
 if (typeof window !== 'undefined' && window.Vue) {
-  window.Vue.use(vue_textarea_autosize_esm_plugin);
+  window.Vue.use(plugin_install);
 }
-
-/* harmony default export */ var vue_textarea_autosize_esm = (vue_textarea_autosize_esm_plugin);
-
 // CONCATENATED MODULE: ./node_modules/vue-currency-input/dist/vue-currency-input.esm.js
 /**
  * Vue Currency Input 1.20.1
@@ -5209,7 +5779,7 @@ var addEventListener = function (el) {
     }
   });
 };
-var directive = {
+var vue_currency_input_esm_directive = {
   bind: function bind (el, ref, ref$1) {
     var value = ref.value;
     var context = ref$1.context;
@@ -5228,7 +5798,7 @@ var directive = {
   }
 };
 
-var component = {
+var vue_currency_input_esm_component = {
   render: function render (h) {
     var this$1 = this;
     return h('input', {
@@ -5250,7 +5820,7 @@ var component = {
     })
   },
   directives: {
-    currency: directive
+    currency: vue_currency_input_esm_directive
   },
   name: 'CurrencyInput',
   props: {
@@ -5319,12 +5889,12 @@ var component = {
 var vue_currency_input_esm_plugin = {
   install: function install (Vue, ref) {
     if ( ref === void 0 ) ref = {};
-    var componentName = ref.componentName; if ( componentName === void 0 ) componentName = component.name;
+    var componentName = ref.componentName; if ( componentName === void 0 ) componentName = vue_currency_input_esm_component.name;
     var directiveName = ref.directiveName; if ( directiveName === void 0 ) directiveName = 'currency';
     var globalOptions = ref.globalOptions; if ( globalOptions === void 0 ) globalOptions = {};
     Vue.prototype.$CI_DEFAULT_OPTIONS = Object.assign({}, DEFAULT_OPTIONS, globalOptions);
-    Vue.component(componentName, component);
-    Vue.directive(directiveName, directive);
+    Vue.component(componentName, vue_currency_input_esm_component);
+    Vue.directive(directiveName, vue_currency_input_esm_directive);
     Vue.prototype.$parseCurrency = function (str, options) {
       if ( options === void 0 ) options = {};
       return parseCurrency(str, Object.assign({}, globalOptions, options));
@@ -5339,9 +5909,9 @@ if (typeof window !== 'undefined' && window.Vue) {
 /* harmony default export */ var vue_currency_input_esm = (vue_currency_input_esm_plugin);
 
 
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b0674bd0-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/components/DateInput.vue?vue&type=template&id=3894b8d3&
-var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('input',_vm._g(_vm._b({ref:"input",attrs:{"type":_vm.type},domProps:{"value":_vm.formatedValue}},'input',_vm.$attrs,false),_vm.listeners))}
-var staticRenderFns = []
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"2001146f-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/components/DateInput.vue?vue&type=template&id=3894b8d3&
+var DateInputvue_type_template_id_3894b8d3_render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('input',_vm._g(_vm._b({ref:"input",attrs:{"type":_vm.type},domProps:{"value":_vm.formatedValue}},'input',_vm.$attrs,false),_vm.listeners))}
+var DateInputvue_type_template_id_3894b8d3_staticRenderFns = []
 
 
 // CONCATENATED MODULE: ./src/components/DateInput.vue?vue&type=template&id=3894b8d3&
@@ -5349,20 +5919,11 @@ var staticRenderFns = []
 // EXTERNAL MODULE: ./node_modules/core-js/modules/es.array.concat.js
 var es_array_concat = __webpack_require__("99af");
 
-// EXTERNAL MODULE: ./node_modules/core-js/modules/es.object.to-string.js
-var es_object_to_string = __webpack_require__("d3b7");
-
-// EXTERNAL MODULE: ./node_modules/core-js/modules/es.regexp.to-string.js
-var es_regexp_to_string = __webpack_require__("25f0");
-
 // EXTERNAL MODULE: ./node_modules/core-js/modules/es.string.pad-start.js
 var es_string_pad_start = __webpack_require__("4d90");
 
 // EXTERNAL MODULE: ./node_modules/core-js/modules/es.symbol.js
 var es_symbol = __webpack_require__("a4d3");
-
-// EXTERNAL MODULE: ./node_modules/core-js/modules/es.array.filter.js
-var es_array_filter = __webpack_require__("4de4");
 
 // EXTERNAL MODULE: ./node_modules/core-js/modules/es.object.get-own-property-descriptor.js
 var es_object_get_own_property_descriptor = __webpack_require__("e439");
@@ -5541,106 +6102,6 @@ function _objectSpread2(target) {
 });
 // CONCATENATED MODULE: ./src/components/DateInput.vue?vue&type=script&lang=js&
  /* harmony default export */ var components_DateInputvue_type_script_lang_js_ = (DateInputvue_type_script_lang_js_); 
-// CONCATENATED MODULE: ./node_modules/vue-loader/lib/runtime/componentNormalizer.js
-/* globals __VUE_SSR_CONTEXT__ */
-
-// IMPORTANT: Do NOT use ES2015 features in this file (except for modules).
-// This module is a runtime utility for cleaner component module output and will
-// be included in the final webpack user bundle.
-
-function componentNormalizer_normalizeComponent (
-  scriptExports,
-  render,
-  staticRenderFns,
-  functionalTemplate,
-  injectStyles,
-  scopeId,
-  moduleIdentifier, /* server only */
-  shadowMode /* vue-cli only */
-) {
-  // Vue.extend constructor export interop
-  var options = typeof scriptExports === 'function'
-    ? scriptExports.options
-    : scriptExports
-
-  // render functions
-  if (render) {
-    options.render = render
-    options.staticRenderFns = staticRenderFns
-    options._compiled = true
-  }
-
-  // functional template
-  if (functionalTemplate) {
-    options.functional = true
-  }
-
-  // scopedId
-  if (scopeId) {
-    options._scopeId = 'data-v-' + scopeId
-  }
-
-  var hook
-  if (moduleIdentifier) { // server build
-    hook = function (context) {
-      // 2.3 injection
-      context =
-        context || // cached call
-        (this.$vnode && this.$vnode.ssrContext) || // stateful
-        (this.parent && this.parent.$vnode && this.parent.$vnode.ssrContext) // functional
-      // 2.2 with runInNewContext: true
-      if (!context && typeof __VUE_SSR_CONTEXT__ !== 'undefined') {
-        context = __VUE_SSR_CONTEXT__
-      }
-      // inject component styles
-      if (injectStyles) {
-        injectStyles.call(this, context)
-      }
-      // register component module identifier for async chunk inferrence
-      if (context && context._registeredComponents) {
-        context._registeredComponents.add(moduleIdentifier)
-      }
-    }
-    // used by ssr in case component is cached and beforeCreate
-    // never gets called
-    options._ssrRegister = hook
-  } else if (injectStyles) {
-    hook = shadowMode
-      ? function () {
-        injectStyles.call(
-          this,
-          (options.functional ? this.parent : this).$root.$options.shadowRoot
-        )
-      }
-      : injectStyles
-  }
-
-  if (hook) {
-    if (options.functional) {
-      // for template-only hot-reload because in that case the render fn doesn't
-      // go through the normalizer
-      options._injectStyles = hook
-      // register for functional component in vue file
-      var originalRender = options.render
-      options.render = function renderWithStyleInjection (h, context) {
-        hook.call(context)
-        return originalRender(h, context)
-      }
-    } else {
-      // inject component registration as beforeCreate hook
-      var existing = options.beforeCreate
-      options.beforeCreate = existing
-        ? [].concat(existing, hook)
-        : [hook]
-    }
-  }
-
-  return {
-    exports: scriptExports,
-    options: options
-  }
-}
-
 // CONCATENATED MODULE: ./src/components/DateInput.vue
 
 
@@ -5649,10 +6110,10 @@ function componentNormalizer_normalizeComponent (
 
 /* normalize component */
 
-var DateInput_component = componentNormalizer_normalizeComponent(
+var DateInput_component = normalizeComponent(
   components_DateInputvue_type_script_lang_js_,
-  render,
-  staticRenderFns,
+  DateInputvue_type_template_id_3894b8d3_render,
+  DateInputvue_type_template_id_3894b8d3_staticRenderFns,
   false,
   null,
   null,
@@ -5661,7 +6122,7 @@ var DateInput_component = componentNormalizer_normalizeComponent(
 )
 
 /* harmony default export */ var DateInput = (DateInput_component.exports);
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b0674bd0-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/components/DurationInput.vue?vue&type=template&id=1046eb49&
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"2001146f-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/components/DurationInput.vue?vue&type=template&id=1046eb49&
 var DurationInputvue_type_template_id_1046eb49_render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('TextInput',_vm._g(_vm._b({ref:"input",attrs:{"value":_vm.displayedText}},'TextInput',_vm.$attrs,false),_vm.listeners))}
 var DurationInputvue_type_template_id_1046eb49_staticRenderFns = []
 
@@ -5680,14 +6141,8 @@ var es_array_map = __webpack_require__("d81d");
 // EXTERNAL MODULE: ./node_modules/core-js/modules/es.array.reduce.js
 var es_array_reduce = __webpack_require__("13d5");
 
-// EXTERNAL MODULE: ./node_modules/core-js/modules/es.array.slice.js
-var es_array_slice = __webpack_require__("fb6a");
-
 // EXTERNAL MODULE: ./node_modules/core-js/modules/es.math.trunc.js
 var es_math_trunc = __webpack_require__("b65f");
-
-// EXTERNAL MODULE: ./node_modules/core-js/modules/es.number.constructor.js
-var es_number_constructor = __webpack_require__("a9e3");
 
 // EXTERNAL MODULE: ./node_modules/core-js/modules/es.number.epsilon.js
 var es_number_epsilon = __webpack_require__("35b3");
@@ -5737,9 +6192,6 @@ var es_symbol_iterator = __webpack_require__("d28b");
 // EXTERNAL MODULE: ./node_modules/core-js/modules/es.array.from.js
 var es_array_from = __webpack_require__("a630");
 
-// EXTERNAL MODULE: ./node_modules/core-js/modules/es.array.iterator.js
-var es_array_iterator = __webpack_require__("e260");
-
 // EXTERNAL MODULE: ./node_modules/core-js/modules/es.string.iterator.js
 var es_string_iterator = __webpack_require__("3ca3");
 
@@ -5754,13 +6206,9 @@ var web_dom_collections_iterator = __webpack_require__("ddb0");
 
 
 
-
 function _iterableToArray(iter) {
   if (typeof Symbol !== "undefined" && Symbol.iterator in Object(iter)) return Array.from(iter);
 }
-// EXTERNAL MODULE: ./node_modules/core-js/modules/es.function.name.js
-var es_function_name = __webpack_require__("b0c0");
-
 // CONCATENATED MODULE: ./node_modules/@babel/runtime/helpers/esm/unsupportedIterableToArray.js
 
 
@@ -5789,12 +6237,12 @@ function _nonIterableSpread() {
 function _toConsumableArray(arr) {
   return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread();
 }
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b0674bd0-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/components/TextInput.vue?vue&type=template&id=a22f8a28&
-var TextInputvue_type_template_id_a22f8a28_render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('input-facade',_vm._g(_vm._b({ref:"input",attrs:{"value":_vm.text},nativeOn:{"click":function($event){return _vm.click($event)}}},'input-facade',_vm.$attrs,false),_vm.listeners))}
-var TextInputvue_type_template_id_a22f8a28_staticRenderFns = []
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"2001146f-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/components/TextInput.vue?vue&type=template&id=5087cae2&
+var TextInputvue_type_template_id_5087cae2_render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('input-facade',_vm._g(_vm._b({ref:"input",attrs:{"mask":_vm.mask,"value":_vm.text}},'input-facade',_vm.$attrs,false),_vm.listeners))}
+var TextInputvue_type_template_id_5087cae2_staticRenderFns = []
 
 
-// CONCATENATED MODULE: ./src/components/TextInput.vue?vue&type=template&id=a22f8a28&
+// CONCATENATED MODULE: ./src/components/TextInput.vue?vue&type=template&id=5087cae2&
 
 // CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/components/TextInput.vue?vue&type=script&lang=js&
 
@@ -5806,15 +6254,14 @@ var TextInputvue_type_template_id_a22f8a28_staticRenderFns = []
   name: "TextInput",
   props: {
     value: String,
-    emitInputOnCreated: {
-      type: Boolean,
-      default: false
+    mask: {
+      type: [String, Array],
+      default: ''
     }
   },
   data: function data() {
     return {
-      text: this.value,
-      preventInputEmit: !this.emitInputOnCreated
+      text: this.value
     };
   },
   watch: {
@@ -5822,27 +6269,19 @@ var TextInputvue_type_template_id_a22f8a28_staticRenderFns = []
       this.text = newValue;
     }
   },
-  mounted: function mounted() {
-    this.preventInputEmit = false;
-  },
   computed: {
     listeners: function listeners() {
       var vm = this;
       return _objectSpread2(_objectSpread2({}, this.$listeners), {}, {
         input: function input(value) {
+          // const value = event.target.value;
           vm.text = value;
-
-          if (!vm.preventInputEmit) {
-            vm.$emit("input", value);
-          }
+          vm.$emit("input", value);
         }
       });
     }
   },
   methods: {
-    click: function click() {
-      this.$emit("click");
-    },
     focus: function focus() {
       this.$refs.input.$el.focus();
     },
@@ -5861,10 +6300,10 @@ var TextInputvue_type_template_id_a22f8a28_staticRenderFns = []
 
 /* normalize component */
 
-var TextInput_component = componentNormalizer_normalizeComponent(
+var TextInput_component = normalizeComponent(
   components_TextInputvue_type_script_lang_js_,
-  TextInputvue_type_template_id_a22f8a28_render,
-  TextInputvue_type_template_id_a22f8a28_staticRenderFns,
+  TextInputvue_type_template_id_5087cae2_render,
+  TextInputvue_type_template_id_5087cae2_staticRenderFns,
   false,
   null,
   null,
@@ -6159,7 +6598,7 @@ var TextInput_component = componentNormalizer_normalizeComponent(
 
 /* normalize component */
 
-var DurationInput_component = componentNormalizer_normalizeComponent(
+var DurationInput_component = normalizeComponent(
   components_DurationInputvue_type_script_lang_js_,
   DurationInputvue_type_template_id_1046eb49_render,
   DurationInputvue_type_template_id_1046eb49_staticRenderFns,
@@ -6171,7 +6610,7 @@ var DurationInput_component = componentNormalizer_normalizeComponent(
 )
 
 /* harmony default export */ var DurationInput = (DurationInput_component.exports);
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b0674bd0-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/components/NumberInput.vue?vue&type=template&id=4ac973e9&
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"2001146f-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/components/NumberInput.vue?vue&type=template&id=4ac973e9&
 var NumberInputvue_type_template_id_4ac973e9_render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('currency-input',_vm._g(_vm._b({ref:"input",attrs:{"value":_vm.value,"currency":_vm.currency}},'currency-input',_vm.$attrs,false),_vm.$listeners))}
 var NumberInputvue_type_template_id_4ac973e9_staticRenderFns = []
 
@@ -6215,7 +6654,7 @@ var NumberInputvue_type_template_id_4ac973e9_staticRenderFns = []
 
 /* normalize component */
 
-var NumberInput_component = componentNormalizer_normalizeComponent(
+var NumberInput_component = normalizeComponent(
   components_NumberInputvue_type_script_lang_js_,
   NumberInputvue_type_template_id_4ac973e9_render,
   NumberInputvue_type_template_id_4ac973e9_staticRenderFns,
@@ -6227,7 +6666,7 @@ var NumberInput_component = componentNormalizer_normalizeComponent(
 )
 
 /* harmony default export */ var NumberInput = (NumberInput_component.exports);
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b0674bd0-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/components/RatingInput.vue?vue&type=template&id=e777de8a&
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"2001146f-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/components/RatingInput.vue?vue&type=template&id=e777de8a&
 var RatingInputvue_type_template_id_e777de8a_render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('fa-rating',_vm._g(_vm._b({staticClass:"rating-input",attrs:{"rating":_vm.rating,"glyph":_vm.glyph,"active-color":_vm.activeColor,"inactive-color":_vm.inactiveColor,"item-size":_vm.itemSize,"border-width":_vm.borderWidth,"show-rating":_vm.showRating,"read-only":_vm.readonly || _vm.disabled}},'fa-rating',_vm.$attrs,false),_vm.listeners))}
 var RatingInputvue_type_template_id_e777de8a_staticRenderFns = []
 
@@ -6345,7 +6784,7 @@ var RatingInputvue_type_style_index_0_lang_css_ = __webpack_require__("ca2c");
 
 /* normalize component */
 
-var RatingInput_component = componentNormalizer_normalizeComponent(
+var RatingInput_component = normalizeComponent(
   components_RatingInputvue_type_script_lang_js_,
   RatingInputvue_type_template_id_e777de8a_render,
   RatingInputvue_type_template_id_e777de8a_staticRenderFns,
@@ -6357,14 +6796,14 @@ var RatingInput_component = componentNormalizer_normalizeComponent(
 )
 
 /* harmony default export */ var RatingInput = (RatingInput_component.exports);
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b0674bd0-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/components/SwitchInput.vue?vue&type=template&id=81b78e42&
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"2001146f-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/components/SwitchInput.vue?vue&type=template&id=81b78e42&
 var SwitchInputvue_type_template_id_81b78e42_render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('switches',_vm._g(_vm._b({attrs:{"value":_vm.checked,"type-bold":_vm.typeBold,"theme":_vm.theme,"color":_vm.color,"emit-on-mount":_vm.emitOnMount}},'switches',_vm.$attrs,false),_vm.listeners))}
 var SwitchInputvue_type_template_id_81b78e42_staticRenderFns = []
 
 
 // CONCATENATED MODULE: ./src/components/SwitchInput.vue?vue&type=template&id=81b78e42&
 
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b0674bd0-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./node_modules/vue-switches/src/switches.vue?vue&type=template&id=8e4870fc&
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"2001146f-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./node_modules/vue-switches/src/switches.vue?vue&type=template&id=8e4870fc&
 var switchesvue_type_template_id_8e4870fc_render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('label',{class:_vm.classObject},[(_vm.shouldShowLabel)?_c('span',{staticClass:"vue-switcher__label"},[(_vm.label)?_c('span',{domProps:{"textContent":_vm._s(_vm.label)}}):_vm._e(),(!_vm.label && _vm.value)?_c('span',{domProps:{"textContent":_vm._s(_vm.textEnabled)}}):_vm._e(),(!_vm.label && !_vm.value)?_c('span',{domProps:{"textContent":_vm._s(_vm.textDisabled)}}):_vm._e()]):_vm._e(),_c('input',{attrs:{"type":"checkbox","disabled":_vm.disabled},domProps:{"checked":_vm.value},on:{"change":_vm.trigger}}),_c('div')])}
 var switchesvue_type_template_id_8e4870fc_staticRenderFns = []
 
@@ -6460,7 +6899,7 @@ var switchesvue_type_style_index_0_lang_css_ = __webpack_require__("1798");
 
 /* normalize component */
 
-var switches_component = componentNormalizer_normalizeComponent(
+var switches_component = normalizeComponent(
   src_switchesvue_type_script_lang_js_,
   switchesvue_type_template_id_8e4870fc_render,
   switchesvue_type_template_id_8e4870fc_staticRenderFns,
@@ -6557,7 +6996,7 @@ var SwitchInputvue_type_style_index_0_lang_css_ = __webpack_require__("d073");
 
 /* normalize component */
 
-var SwitchInput_component = componentNormalizer_normalizeComponent(
+var SwitchInput_component = normalizeComponent(
   components_SwitchInputvue_type_script_lang_js_,
   SwitchInputvue_type_template_id_81b78e42_render,
   SwitchInputvue_type_template_id_81b78e42_staticRenderFns,
@@ -6569,15 +7008,23 @@ var SwitchInput_component = componentNormalizer_normalizeComponent(
 )
 
 /* harmony default export */ var SwitchInput = (SwitchInput_component.exports);
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b0674bd0-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/components/TextAreaInput.vue?vue&type=template&id=84b1846e&
-var TextAreaInputvue_type_template_id_84b1846e_render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('textarea-autosize',_vm._g(_vm._b({ref:"input",attrs:{"value":_vm.text,"autosize":_vm.autosize}},'textarea-autosize',_vm.$attrs,false),_vm.listeners))}
-var TextAreaInputvue_type_template_id_84b1846e_staticRenderFns = []
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"2001146f-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/components/TextAreaInput.vue?vue&type=template&id=204dd7e6&
+var TextAreaInputvue_type_template_id_204dd7e6_render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('textarea',_vm._g(_vm._b({ref:"input",style:(_vm.computedStyles),attrs:{"autosize":_vm.autosize},domProps:{"value":_vm.text}},'textarea',_vm.$attrs,false),_vm.listeners))}
+var TextAreaInputvue_type_template_id_204dd7e6_staticRenderFns = []
 
 
-// CONCATENATED MODULE: ./src/components/TextAreaInput.vue?vue&type=template&id=84b1846e&
+// CONCATENATED MODULE: ./src/components/TextAreaInput.vue?vue&type=template&id=204dd7e6&
+
+// EXTERNAL MODULE: ./node_modules/core-js/modules/es.string.includes.js
+var es_string_includes = __webpack_require__("2532");
 
 // CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/components/TextAreaInput.vue?vue&type=script&lang=js&
 
+
+
+
+
+//
 //
 //
 //
@@ -6595,6 +7042,22 @@ var TextAreaInputvue_type_template_id_84b1846e_staticRenderFns = []
     autosize: {
       type: Boolean,
       default: true
+    },
+    minHeight: {
+      type: [Number],
+      default: null
+    },
+    maxHeight: {
+      type: [Number],
+      default: null
+    },
+
+    /*
+     * Force !important for style properties
+     */
+    important: {
+      type: [Boolean, Array],
+      default: false
     }
   },
   data: function data() {
@@ -6607,42 +7070,98 @@ var TextAreaInputvue_type_template_id_84b1846e_staticRenderFns = []
           _this.resize();
         }
       }),
-      onCreatedInputEventPrevented: false // textarea-autosize emit an input event when created and i don't want it
-
+      // works when content height becomes more then value of the maxHeight property
+      maxHeightScroll: false,
+      height: "auto"
     };
   },
   watch: {
     value: function value(newValue) {
       this.text = newValue;
+      this.$nextTick(this.resize);
+    },
+    minHeight: function minHeight() {
+      this.$nextTick(this.resize);
+    },
+    maxHeight: function maxHeight() {
+      this.$nextTick(this.resize);
+    },
+    autosize: function autosize(newValue) {
+      if (newValue) this.resize();
     }
   },
   mounted: function mounted() {
-    this.resizeObserver.observe(this.$refs.input.$el);
+    this.resizeObserver.observe(this.$el);
   },
   beforeDestroy: function beforeDestroy() {
-    this.resizeObserver.unobserve(this.$refs.input.$el);
+    this.resizeObserver.unobserve(this.$el);
   },
   computed: {
     listeners: function listeners() {
       var vm = this;
       return _objectSpread2(_objectSpread2({}, this.$listeners), {}, {
-        input: function input(value) {
-          if (vm.onCreatedInputEventPrevented) {
-            vm.text = value;
-            vm.$emit("input", value);
-          } else {
-            vm.onCreatedInputEventPrevented = true;
-          }
+        focus: function focus(event) {
+          vm.resize();
+          vm.$emit("focus", event);
+        },
+        input: function input(event) {
+          var value = event.target.value;
+          vm.text = value;
+          vm.$emit("input", value);
         }
       });
+    },
+    computedStyles: function computedStyles() {
+      if (!this.autosize) return {};
+      return {
+        resize: !this.isResizeImportant ? "none" : "none !important",
+        height: this.height,
+        overflow: this.maxHeightScroll ? "auto" : !this.isOverflowImportant ? "hidden" : "hidden !important"
+      };
+    },
+    isResizeImportant: function isResizeImportant() {
+      var imp = this.important;
+      return imp === true || Array.isArray(imp) && imp.includes("resize");
+    },
+    isOverflowImportant: function isOverflowImportant() {
+      var imp = this.important;
+      return imp === true || Array.isArray(imp) && imp.includes("overflow");
+    },
+    isHeightImportant: function isHeightImportant() {
+      var imp = this.important;
+      return imp === true || Array.isArray(imp) && imp.includes("height");
     }
   },
   methods: {
     focus: function focus() {
-      this.$refs.input.$el.focus();
+      this.$el.focus();
     },
+    // private
     resize: function resize() {
-      this.$refs.input.resize();
+      var _this2 = this;
+
+      var important = this.isHeightImportant ? "important" : "";
+      this.height = "auto".concat(important ? " !important" : "");
+      this.$nextTick(function () {
+        var contentHeight = _this2.$el.scrollHeight + 1;
+
+        if (_this2.minHeight) {
+          contentHeight = contentHeight < _this2.minHeight ? _this2.minHeight : contentHeight;
+        }
+
+        if (_this2.maxHeight) {
+          if (contentHeight > _this2.maxHeight) {
+            contentHeight = _this2.maxHeight;
+            _this2.maxHeightScroll = true;
+          } else {
+            _this2.maxHeightScroll = false;
+          }
+        }
+
+        var heightVal = contentHeight + "px";
+        _this2.height = "".concat(heightVal).concat(important ? " !important" : "");
+      });
+      return this;
     }
   }
 });
@@ -6656,10 +7175,10 @@ var TextAreaInputvue_type_template_id_84b1846e_staticRenderFns = []
 
 /* normalize component */
 
-var TextAreaInput_component = componentNormalizer_normalizeComponent(
+var TextAreaInput_component = normalizeComponent(
   components_TextAreaInputvue_type_script_lang_js_,
-  TextAreaInputvue_type_template_id_84b1846e_render,
-  TextAreaInputvue_type_template_id_84b1846e_staticRenderFns,
+  TextAreaInputvue_type_template_id_204dd7e6_render,
+  TextAreaInputvue_type_template_id_204dd7e6_staticRenderFns,
   false,
   null,
   null,
@@ -6668,7 +7187,7 @@ var TextAreaInput_component = componentNormalizer_normalizeComponent(
 )
 
 /* harmony default export */ var TextAreaInput = (TextAreaInput_component.exports);
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b0674bd0-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/components/TextIconInput.vue?vue&type=template&id=54540cb6&scoped=true&
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"2001146f-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/components/TextIconInput.vue?vue&type=template&id=54540cb6&scoped=true&
 var TextIconInputvue_type_template_id_54540cb6_scoped_true_render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',{staticClass:"text-icon-input",class:{'icon-left':_vm.prefixIcon, 'icon-right':_vm.suffixIcon}},[(_vm.prefixIcon)?_c('font-awesome-icon',{staticClass:"prefix-icon",style:({color:_vm.iconColor}),attrs:{"icon":_vm.prefixIcon},on:{"click":_vm.onPrefixIconClick}}):_vm._e(),_c('TextInput',_vm._g(_vm._b({ref:"input",class:_vm.inputClass,attrs:{"value":_vm.text}},'TextInput',_vm.$attrs,false),_vm.listeners)),(_vm.suffixIcon)?_c('font-awesome-icon',{staticClass:"suffix-icon",style:({color:_vm.iconColor}),attrs:{"icon":_vm.suffixIcon},on:{"click":_vm.onSuffixIconClick}}):_vm._e()],1)}
 var TextIconInputvue_type_template_id_54540cb6_scoped_true_staticRenderFns = []
 
@@ -6784,7 +7303,7 @@ var TextIconInputvue_type_style_index_0_id_54540cb6_scoped_true_lang_css_ = __we
 
 /* normalize component */
 
-var TextIconInput_component = componentNormalizer_normalizeComponent(
+var TextIconInput_component = normalizeComponent(
   components_TextIconInputvue_type_script_lang_js_,
   TextIconInputvue_type_template_id_54540cb6_scoped_true_render,
   TextIconInputvue_type_template_id_54540cb6_scoped_true_staticRenderFns,
@@ -6800,7 +7319,6 @@ var TextIconInput_component = componentNormalizer_normalizeComponent(
  // Dependencies
 
 
-
  // Inputs
 
 
@@ -6811,8 +7329,40 @@ var TextIconInput_component = componentNormalizer_normalizeComponent(
 
 
 
-external_commonjs_vue_commonjs2_vue_root_Vue_default.a.use(vue_input_facade_umd_min_default.a);
-external_commonjs_vue_commonjs2_vue_root_Vue_default.a.use(vue_textarea_autosize_esm);
+external_commonjs_vue_commonjs2_vue_root_Vue_default.a.use(vue_input_facade_plugin, {
+  tokens: {
+    '#': {
+      pattern: /\d/
+    },
+    X: {
+      pattern: /[0-9a-z]/i
+    },
+    S: {
+      pattern: /[a-z]/i
+    },
+    A: {
+      pattern: /[a-z]/i,
+      transform: function transform(v) {
+        return v.toLocaleUpperCase();
+      }
+    },
+    a: {
+      pattern: /[a-z]/i,
+      transform: function transform(v) {
+        return v.toLocaleLowerCase();
+      }
+    },
+    '\\': {
+      escape: true
+    },
+    F: {
+      pattern: /[0-9A-F]/i,
+      transform: function transform(v) {
+        return v.toLocaleUpperCase();
+      }
+    }
+  }
+});
 external_commonjs_vue_commonjs2_vue_root_Vue_default.a.use(vue_currency_input_esm);
 var Components = {
   DateInput: DateInput,
@@ -6831,7 +7381,7 @@ var Components = {
 
 
 
-var src_version = '__VERSION__';
+var version = '__VERSION__';
 
 var src_install = function install(Vue) {
   Object.keys(components).forEach(function (name) {
@@ -6841,7 +7391,7 @@ var src_install = function install(Vue) {
 
 var src_plugin = {
   install: src_install,
-  version: src_version
+  version: version
 };
 /* harmony default export */ var src_0 = (src_plugin);
 
