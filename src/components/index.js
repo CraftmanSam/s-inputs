@@ -2,7 +2,6 @@ import Vue from 'vue'
 
 // Dependencies
 import InputFacade from 'vue-input-facade'
-import TextareaAutosize from 'vue-textarea-autosize'
 import VueCurrencyInput from 'vue-currency-input'
 
 // Inputs
@@ -26,7 +25,6 @@ Vue.use(InputFacade, {
         F: { pattern: /[0-9A-F]/i, transform: v => v.toLocaleUpperCase() }
     }
 })
-Vue.use(TextareaAutosize)
 Vue.use(VueCurrencyInput)
 
 const Components = {

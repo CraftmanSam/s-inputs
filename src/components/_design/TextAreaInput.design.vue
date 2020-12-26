@@ -32,21 +32,26 @@ export default {
             autosize: false
           }
         ]),
-        new Section("min-height", [
+        new Section("minHeight", [
           {
             minHeight: 150
           }
         ]),
-        new Section("max-height", [
+        new Section("maxHeight", [
           {
             maxHeight: 50
+          }
+        ]),
+        new Section("important", [
+          {
+            important: true
           }
         ]),
         "readonly",
         "disabled",
         "placeholder"
       ],
-      events: ["input"],
+      events: ["input", "focus"],
       methods: ["focus"]
     };
   }

@@ -22,8 +22,20 @@ export default {
   color: #2c3e50;
   margin-top: 60px;
 }
+
+@media (prefers-color-scheme: dark) {
+  #app {
+    color: #597ca0;
+  }
+}
 </style>
 <style>
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #222;
+  }
+}
+
 *, :after, :before {
     box-sizing: border-box;
 }

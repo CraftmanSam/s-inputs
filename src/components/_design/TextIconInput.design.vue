@@ -61,7 +61,8 @@ export default {
         }),
         new Section("suffixIconClick", {
           suffixIcon: "search"
-        })
+        }),
+        "keypress"
       ],
       methods: ["focus"]
     };
