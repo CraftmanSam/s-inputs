@@ -87,14 +87,13 @@ export default {
 ### Interface
 
 #### Props
-Inherits from [`<input-facade>`](https://ronaldjerez.github.io/vue-input-facade/#component)
-
 Props | Required | Type | Default | Description
 ----- | -------- | ---- | ------- | -----------
 v-model | no | String | '' | Value binding.
 value | no | String | '' | Part of the `v-model` binding.
-emit-input-on-created | no | Boolean | false | Emit an `input` event when created if `true`
 mask | no | String, Array | '' | The mask pattern for this input, it could be a single pattern or multiple patterns when its an array.
+masked | no | Boolean | false | Wether emits the raw value (false), or formated with the mask (true)
+tokens | no | Object | default token | The mask tokens with their text modifications, see [Mask Tokens](#mask-tokens)
 
 #### Events
 Name | Params | Description
@@ -110,13 +109,14 @@ focus | [none] | Focus the input.
 
 #### Mask Tokens
 
-* S = alpha characters
-* \# = numerical characters
-* X = alpha numerical characters
-* A = alpha characters, transformed to uppercase
-* a = alpha characters, transformed to lowercase
-* F = hexadecimal characters, transformed to uppercase
-* \ = escape any of the above characters
+* \* = Any character
+* \# = Number
+* X = Alphanumeric
+* H = Hexadecimal, transformed to uppercase
+* S = Letter in any case
+* A = Letter, transformed to uppercase
+* a = Letter, transformed to lowercase
+* \ = Escape any of the above characters
 
 
 
