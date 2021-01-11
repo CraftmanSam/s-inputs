@@ -44,6 +44,10 @@ export default {
           new Test("with trailing mask", {
             mask: "A\\#(#)",
             value: 'h4'
+          }),
+          new Test("backspace and delete", {
+            mask: "aa--aa",
+            value: "abcd"
           })
         ]),
         new Section("masked", [
