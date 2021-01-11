@@ -32,17 +32,15 @@ export default {
   },
   data() {
     return {
-      rawText: "",
-      maskedText: "",
-      lastValue: "", // avoid unecessary emit when has no change
+      history: [],
+      historyIndex: -1,
     };
   },
   watch: {
     value: {
       immediate: true,
       handler(newValue) {
-        const maskerData = this.refresh(newValue);
-        this.lastValue = maskerData.maskedValue;
+        this.refresh(newValue);
       },
     },
     mask() {
@@ -137,35 +135,80 @@ export default {
           this.$emit("keydown", event);
         },
         input: (event) => {
-          let cursorIndex = event.target.selectionStart;
-          // maskIt
-          const maskerData = this.refresh(event.target.value);
-          this.$refs.input.value = maskerData.maskedValue; // force display refresh
-          this.updateCursor(event, maskerData, cursorIndex);
+          if (event.inputType === "historyUndo") {
+            const lastValue = this.history[this.historyIndex].maskedValue;
+            this.undo();
+            const maskerData = this.history[this.historyIndex];
+            if (maskerData.maskedValue !== lastValue) {
+              this.emitInput(maskerData);
+            }
+          } else if (event.inputType === "historyRedo") {
+            const lastValue = this.history[this.historyIndex].maskedValue;
+            this.redo();
+            const maskerData = this.history[this.historyIndex];
+            if (maskerData.maskedValue !== lastValue) {
+              this.emitInput(maskerData);
+            }
+          } else {
+            // maskIt
+            let cursorIndex = event.target.selectionStart;
+            const maskerData = this.masker(
+              event.target.value,
+              this.mask,
+              this.tokens
+            );
+            this.forceDisplayRefresh(maskerData.maskedValue);
+            this.updateCursor(event, maskerData, cursorIndex);
 
-          console.log("masked value", maskerData.maskedValue);
-
-          if (maskerData.maskedValue !== this.lastValue) {
-            this.lastValue = maskerData.maskedValue;
-            if (this.masked) {
-              this.$emit("input", maskerData.maskedValue);
-            } else {
-              this.$emit("input", maskerData.rawValue);
+            const lastValue = this.history[this.historyIndex].maskedValue;
+            if (maskerData.maskedValue !== lastValue) {
+              this.addHistory(maskerData);
+              this.emitInput(maskerData);
             }
           }
         },
       };
+    },
+    rawText() {
+      return this.history[this.historyIndex].rawValue;
+    },
+    maskedText() {
+      return this.history[this.historyIndex].maskedValue;
     },
   },
   methods: {
     focus() {
       this.$refs.input.focus();
     },
+    emitInput(maskerData) {
+      const emitValue = this.masked
+        ? maskerData.maskedValue
+        : maskerData.rawValue;
+      this.$emit("input", emitValue);
+    },
     refresh(rawValue) {
       const maskerData = this.masker(rawValue, this.mask, this.tokens);
-      this.rawText = maskerData.rawValue;
-      this.maskedText = maskerData.maskedValue;
+      this.addHistory(maskerData);
       return maskerData;
+    },
+    forceDisplayRefresh(value) {
+      this.$refs.input.value = value; // force display refresh
+    },
+    addHistory(maskerData) {
+      this.history = [
+        ...this.history.slice(0, this.historyIndex + 1),
+        maskerData,
+      ];
+      this.historyIndex = this.history.length - 1;
+    },
+    undo() {
+      this.historyIndex = this.historyIndex > 0 ? this.historyIndex - 1 : 0;
+    },
+    redo() {
+      this.historyIndex =
+        this.historyIndex < this.history.length
+          ? this.historyIndex + 1
+          : this.history.length;
     },
     updateCursor(event, maskerData, cursorIndex) {
       // if (event.inputType === "deleteContentBackward") {
