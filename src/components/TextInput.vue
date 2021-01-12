@@ -158,11 +158,19 @@ export default {
               this.tokens
             );
             this.forceDisplayRefresh(maskerData.maskedValue);
-            this.updateCursor(event, maskerData, cursorIndex);
+            const newCursorIndex = this.updateCursor(
+              event,
+              maskerData,
+              cursorIndex
+            );
 
             const lastValue = this.history[this.historyIndex].maskedValue;
             if (maskerData.maskedValue !== lastValue) {
-              this.addHistory(maskerData);
+              const historyData = {
+                ...maskerData,
+                cursorIndex: newCursorIndex,
+              };
+              this.addHistory(historyData);
               this.emitInput(maskerData);
             }
           }
@@ -203,31 +211,38 @@ export default {
     },
     undo() {
       this.historyIndex = this.historyIndex > 0 ? this.historyIndex - 1 : 0;
+      const cursorIndex = this.history[this.historyIndex].cursorIndex;
+      if (cursorIndex !== void(0)) {
+        this.setCursor(cursorIndex);
+        this.focus()
+      }
     },
     redo() {
       this.historyIndex =
         this.historyIndex < this.history.length
           ? this.historyIndex + 1
           : this.history.length;
+      const cursorIndex = this.history[this.historyIndex].cursorIndex;
+      if (cursorIndex !== void(0)) {
+        this.setCursor(cursorIndex);
+        this.focus()
+      }
     },
     updateCursor(event, maskerData, cursorIndex) {
-      // if (event.inputType === "deleteContentBackward") {
-      //   // backslash
-      //   this.setCursor(cursorIndex);
-      // } else if (event.inputType === "deleteContentForward") {
-      //   // delete
-      // } else {
-      if (maskerData.conversions) {
-        // find the first character after the cursor index
-        const nextIndex = maskerData.conversions.findIndex(
-          (conversion) => conversion.inputIndex >= cursorIndex
-        );
-        // if no character after nextIndex is equal to -1, so set the new cursor to the end of the string
-        const newCursor =
-          nextIndex >= 0 ? nextIndex : maskerData.conversions.length;
-        this.setCursor(newCursor);
+      if (!maskerData.conversions) {
+        // no mask
+        return cursorIndex;
       }
-      // }
+
+      // find the first character after the cursor index
+      const nextIndex = maskerData.conversions.findIndex(
+        (conversion) => conversion.inputIndex >= cursorIndex
+      );
+      // if no character after nextIndex is equal to -1, so set the new cursor to the end of the string
+      const newCursor =
+        nextIndex >= 0 ? nextIndex : maskerData.conversions.length;
+      this.setCursor(newCursor);
+      return newCursor
     },
     async setCursor(index) {
       this.$refs.input.setSelectionRange(index, index);
@@ -247,7 +262,7 @@ export default {
       );
       const selectedValue = maskedValues.sort(
         (a, b) => b.rawValue.length - a.rawValue.length
-      )[0]; // select the larger one
+      )[0]; // select the mask with the most raw characters
       return selectedValue;
     },
     maskit(value = "", mask = "", tokens) {
@@ -297,7 +312,7 @@ export default {
           }
           let conversion = {
             value: cMask,
-            inputIndex: undefined,
+            inputIndex: void(0),
             maskIndex,
             isRaw: false,
           };
@@ -328,7 +343,7 @@ export default {
         if (cMask2)
           restConversions.push({
             value: cMask2,
-            inputIndex: undefined,
+            inputIndex: void(0),
             maskIndex,
             isRaw: false,
           });
