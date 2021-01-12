@@ -108,15 +108,19 @@ focus | [none] | Focus the input.
 
 
 #### Mask Tokens
-
-* \* = Any character
-* \# = Number
-* X = Alphanumeric
-* H = Hexadecimal, transformed to uppercase
-* S = Letter in any case
-* A = Letter, transformed to uppercase
-* a = Letter, transformed to lowercase
-* \ = Escape any of the above characters
+default values :
+```javascript
+{
+  "*": { pattern: /[\s\S]/ }, // Any character
+  "#": { pattern: /\d/ }, // Number
+  X: { pattern: /[0-9a-z]/i }, // Alphanumeric
+  H: { pattern: /[0-9A-F]/i, transform: (v) => v.toLocaleUpperCase() }, // Hexadecimal
+  S: { pattern: /[a-z]/i }, // Letter in any case
+  A: { pattern: /[a-z]/i, transform: (v) => v.toLocaleUpperCase() }, // Letter in upper case
+  a: { pattern: /[a-z]/i, transform: (v) => v.toLocaleLowerCase() }, // Letter in lower case
+  "\\": { escape: true }, // Escape character
+}
+```
 
 
 
