@@ -532,6 +532,18 @@ module.exports = (!STRICT_METHOD || !USES_TO_LENGTH) ? function forEach(callback
 
 /***/ }),
 
+/***/ "19aa":
+/***/ (function(module, exports) {
+
+module.exports = function (it, Constructor, name) {
+  if (!(it instanceof Constructor)) {
+    throw TypeError('Incorrect ' + (name ? name + ' ' : '') + 'invocation');
+  } return it;
+};
+
+
+/***/ }),
+
 /***/ "1be4":
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -599,6 +611,16 @@ module.exports = function (exec, SKIP_CLOSING) {
 
 /***/ }),
 
+/***/ "1cdc":
+/***/ (function(module, exports, __webpack_require__) {
+
+var userAgent = __webpack_require__("342f");
+
+module.exports = /(iphone|ipod|ipad).*applewebkit/i.test(userAgent);
+
+
+/***/ }),
+
 /***/ "1d80":
 /***/ (function(module, exports) {
 
@@ -633,6 +655,56 @@ module.exports = function (METHOD_NAME) {
     };
     return array[METHOD_NAME](Boolean).foo !== 1;
   });
+};
+
+
+/***/ }),
+
+/***/ "2266":
+/***/ (function(module, exports, __webpack_require__) {
+
+var anObject = __webpack_require__("825a");
+var isArrayIteratorMethod = __webpack_require__("e95a");
+var toLength = __webpack_require__("50c4");
+var bind = __webpack_require__("0366");
+var getIteratorMethod = __webpack_require__("35a1");
+var callWithSafeIterationClosing = __webpack_require__("9bdd");
+
+var Result = function (stopped, result) {
+  this.stopped = stopped;
+  this.result = result;
+};
+
+var iterate = module.exports = function (iterable, fn, that, AS_ENTRIES, IS_ITERATOR) {
+  var boundFunction = bind(fn, that, AS_ENTRIES ? 2 : 1);
+  var iterator, iterFn, index, length, result, next, step;
+
+  if (IS_ITERATOR) {
+    iterator = iterable;
+  } else {
+    iterFn = getIteratorMethod(iterable);
+    if (typeof iterFn != 'function') throw TypeError('Target is not iterable');
+    // optimisation for array iterators
+    if (isArrayIteratorMethod(iterFn)) {
+      for (index = 0, length = toLength(iterable.length); length > index; index++) {
+        result = AS_ENTRIES
+          ? boundFunction(anObject(step = iterable[index])[0], step[1])
+          : boundFunction(iterable[index]);
+        if (result && result instanceof Result) return result;
+      } return new Result(false);
+    }
+    iterator = iterFn.call(iterable);
+  }
+
+  next = iterator.next;
+  while (!(step = next.call(iterator)).done) {
+    result = callWithSafeIterationClosing(iterator, boundFunction, step.value, AS_ENTRIES);
+    if (typeof result == 'object' && result && result instanceof Result) return result;
+  } return new Result(false);
+};
+
+iterate.stop = function (result) {
+  return new Result(true, result);
 };
 
 
@@ -786,6 +858,147 @@ if (NOT_GENERIC || INCORRECT_NAME) {
     return '/' + p + '/' + f;
   }, { unsafe: true });
 }
+
+
+/***/ }),
+
+/***/ "2626":
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var getBuiltIn = __webpack_require__("d066");
+var definePropertyModule = __webpack_require__("9bf2");
+var wellKnownSymbol = __webpack_require__("b622");
+var DESCRIPTORS = __webpack_require__("83ab");
+
+var SPECIES = wellKnownSymbol('species');
+
+module.exports = function (CONSTRUCTOR_NAME) {
+  var Constructor = getBuiltIn(CONSTRUCTOR_NAME);
+  var defineProperty = definePropertyModule.f;
+
+  if (DESCRIPTORS && Constructor && !Constructor[SPECIES]) {
+    defineProperty(Constructor, SPECIES, {
+      configurable: true,
+      get: function () { return this; }
+    });
+  }
+};
+
+
+/***/ }),
+
+/***/ "2cf4":
+/***/ (function(module, exports, __webpack_require__) {
+
+var global = __webpack_require__("da84");
+var fails = __webpack_require__("d039");
+var classof = __webpack_require__("c6b6");
+var bind = __webpack_require__("0366");
+var html = __webpack_require__("1be4");
+var createElement = __webpack_require__("cc12");
+var IS_IOS = __webpack_require__("1cdc");
+
+var location = global.location;
+var set = global.setImmediate;
+var clear = global.clearImmediate;
+var process = global.process;
+var MessageChannel = global.MessageChannel;
+var Dispatch = global.Dispatch;
+var counter = 0;
+var queue = {};
+var ONREADYSTATECHANGE = 'onreadystatechange';
+var defer, channel, port;
+
+var run = function (id) {
+  // eslint-disable-next-line no-prototype-builtins
+  if (queue.hasOwnProperty(id)) {
+    var fn = queue[id];
+    delete queue[id];
+    fn();
+  }
+};
+
+var runner = function (id) {
+  return function () {
+    run(id);
+  };
+};
+
+var listener = function (event) {
+  run(event.data);
+};
+
+var post = function (id) {
+  // old engines have not location.origin
+  global.postMessage(id + '', location.protocol + '//' + location.host);
+};
+
+// Node.js 0.9+ & IE10+ has setImmediate, otherwise:
+if (!set || !clear) {
+  set = function setImmediate(fn) {
+    var args = [];
+    var i = 1;
+    while (arguments.length > i) args.push(arguments[i++]);
+    queue[++counter] = function () {
+      // eslint-disable-next-line no-new-func
+      (typeof fn == 'function' ? fn : Function(fn)).apply(undefined, args);
+    };
+    defer(counter);
+    return counter;
+  };
+  clear = function clearImmediate(id) {
+    delete queue[id];
+  };
+  // Node.js 0.8-
+  if (classof(process) == 'process') {
+    defer = function (id) {
+      process.nextTick(runner(id));
+    };
+  // Sphere (JS game engine) Dispatch API
+  } else if (Dispatch && Dispatch.now) {
+    defer = function (id) {
+      Dispatch.now(runner(id));
+    };
+  // Browsers with MessageChannel, includes WebWorkers
+  // except iOS - https://github.com/zloirock/core-js/issues/624
+  } else if (MessageChannel && !IS_IOS) {
+    channel = new MessageChannel();
+    port = channel.port2;
+    channel.port1.onmessage = listener;
+    defer = bind(port.postMessage, port, 1);
+  // Browsers with postMessage, skip WebWorkers
+  // IE8 has postMessage, but it's sync & typeof its postMessage is 'object'
+  } else if (
+    global.addEventListener &&
+    typeof postMessage == 'function' &&
+    !global.importScripts &&
+    !fails(post) &&
+    location.protocol !== 'file:'
+  ) {
+    defer = post;
+    global.addEventListener('message', listener, false);
+  // IE8-
+  } else if (ONREADYSTATECHANGE in createElement('script')) {
+    defer = function (id) {
+      html.appendChild(createElement('script'))[ONREADYSTATECHANGE] = function () {
+        html.removeChild(this);
+        run(id);
+      };
+    };
+  // Rest old browsers
+  } else {
+    defer = function (id) {
+      setTimeout(runner(id), 0);
+    };
+  }
+}
+
+module.exports = {
+  set: set,
+  clear: clear
+};
 
 
 /***/ }),
@@ -1027,6 +1240,21 @@ if (ArrayPrototype[UNSCOPABLES] == undefined) {
 // add a key to Array.prototype[@@unscopables]
 module.exports = function (key) {
   ArrayPrototype[UNSCOPABLES][key] = true;
+};
+
+
+/***/ }),
+
+/***/ "44de":
+/***/ (function(module, exports, __webpack_require__) {
+
+var global = __webpack_require__("da84");
+
+module.exports = function (a, b) {
+  var console = global.console;
+  if (console && console.error) {
+    arguments.length === 1 ? console.error(a) : console.error(a, b);
+  }
 };
 
 
@@ -1926,6 +2154,38 @@ module.exports = Object.create || function create(O, Properties) {
 
 /***/ }),
 
+/***/ "7db0":
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var $ = __webpack_require__("23e7");
+var $find = __webpack_require__("b727").find;
+var addToUnscopables = __webpack_require__("44d2");
+var arrayMethodUsesToLength = __webpack_require__("ae40");
+
+var FIND = 'find';
+var SKIPS_HOLES = true;
+
+var USES_TO_LENGTH = arrayMethodUsesToLength(FIND);
+
+// Shouldn't skip holes
+if (FIND in []) Array(1)[FIND](function () { SKIPS_HOLES = false; });
+
+// `Array.prototype.find` method
+// https://tc39.github.io/ecma262/#sec-array.prototype.find
+$({ target: 'Array', proto: true, forced: SKIPS_HOLES || !USES_TO_LENGTH }, {
+  find: function find(callbackfn /* , that = undefined */) {
+    return $find(this, callbackfn, arguments.length > 1 ? arguments[1] : undefined);
+  }
+});
+
+// https://tc39.github.io/ecma262/#sec-array.prototype-@@unscopables
+addToUnscopables(FIND);
+
+
+/***/ }),
+
 /***/ "7dd0":
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -2427,6 +2687,742 @@ var NATIVE = isForced.NATIVE = 'N';
 var POLYFILL = isForced.POLYFILL = 'P';
 
 module.exports = isForced;
+
+
+/***/ }),
+
+/***/ "96cf":
+/***/ (function(module, exports, __webpack_require__) {
+
+/**
+ * Copyright (c) 2014-present, Facebook, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+var runtime = (function (exports) {
+  "use strict";
+
+  var Op = Object.prototype;
+  var hasOwn = Op.hasOwnProperty;
+  var undefined; // More compressible than void 0.
+  var $Symbol = typeof Symbol === "function" ? Symbol : {};
+  var iteratorSymbol = $Symbol.iterator || "@@iterator";
+  var asyncIteratorSymbol = $Symbol.asyncIterator || "@@asyncIterator";
+  var toStringTagSymbol = $Symbol.toStringTag || "@@toStringTag";
+
+  function wrap(innerFn, outerFn, self, tryLocsList) {
+    // If outerFn provided and outerFn.prototype is a Generator, then outerFn.prototype instanceof Generator.
+    var protoGenerator = outerFn && outerFn.prototype instanceof Generator ? outerFn : Generator;
+    var generator = Object.create(protoGenerator.prototype);
+    var context = new Context(tryLocsList || []);
+
+    // The ._invoke method unifies the implementations of the .next,
+    // .throw, and .return methods.
+    generator._invoke = makeInvokeMethod(innerFn, self, context);
+
+    return generator;
+  }
+  exports.wrap = wrap;
+
+  // Try/catch helper to minimize deoptimizations. Returns a completion
+  // record like context.tryEntries[i].completion. This interface could
+  // have been (and was previously) designed to take a closure to be
+  // invoked without arguments, but in all the cases we care about we
+  // already have an existing method we want to call, so there's no need
+  // to create a new function object. We can even get away with assuming
+  // the method takes exactly one argument, since that happens to be true
+  // in every case, so we don't have to touch the arguments object. The
+  // only additional allocation required is the completion record, which
+  // has a stable shape and so hopefully should be cheap to allocate.
+  function tryCatch(fn, obj, arg) {
+    try {
+      return { type: "normal", arg: fn.call(obj, arg) };
+    } catch (err) {
+      return { type: "throw", arg: err };
+    }
+  }
+
+  var GenStateSuspendedStart = "suspendedStart";
+  var GenStateSuspendedYield = "suspendedYield";
+  var GenStateExecuting = "executing";
+  var GenStateCompleted = "completed";
+
+  // Returning this object from the innerFn has the same effect as
+  // breaking out of the dispatch switch statement.
+  var ContinueSentinel = {};
+
+  // Dummy constructor functions that we use as the .constructor and
+  // .constructor.prototype properties for functions that return Generator
+  // objects. For full spec compliance, you may wish to configure your
+  // minifier not to mangle the names of these two functions.
+  function Generator() {}
+  function GeneratorFunction() {}
+  function GeneratorFunctionPrototype() {}
+
+  // This is a polyfill for %IteratorPrototype% for environments that
+  // don't natively support it.
+  var IteratorPrototype = {};
+  IteratorPrototype[iteratorSymbol] = function () {
+    return this;
+  };
+
+  var getProto = Object.getPrototypeOf;
+  var NativeIteratorPrototype = getProto && getProto(getProto(values([])));
+  if (NativeIteratorPrototype &&
+      NativeIteratorPrototype !== Op &&
+      hasOwn.call(NativeIteratorPrototype, iteratorSymbol)) {
+    // This environment has a native %IteratorPrototype%; use it instead
+    // of the polyfill.
+    IteratorPrototype = NativeIteratorPrototype;
+  }
+
+  var Gp = GeneratorFunctionPrototype.prototype =
+    Generator.prototype = Object.create(IteratorPrototype);
+  GeneratorFunction.prototype = Gp.constructor = GeneratorFunctionPrototype;
+  GeneratorFunctionPrototype.constructor = GeneratorFunction;
+  GeneratorFunctionPrototype[toStringTagSymbol] =
+    GeneratorFunction.displayName = "GeneratorFunction";
+
+  // Helper for defining the .next, .throw, and .return methods of the
+  // Iterator interface in terms of a single ._invoke method.
+  function defineIteratorMethods(prototype) {
+    ["next", "throw", "return"].forEach(function(method) {
+      prototype[method] = function(arg) {
+        return this._invoke(method, arg);
+      };
+    });
+  }
+
+  exports.isGeneratorFunction = function(genFun) {
+    var ctor = typeof genFun === "function" && genFun.constructor;
+    return ctor
+      ? ctor === GeneratorFunction ||
+        // For the native GeneratorFunction constructor, the best we can
+        // do is to check its .name property.
+        (ctor.displayName || ctor.name) === "GeneratorFunction"
+      : false;
+  };
+
+  exports.mark = function(genFun) {
+    if (Object.setPrototypeOf) {
+      Object.setPrototypeOf(genFun, GeneratorFunctionPrototype);
+    } else {
+      genFun.__proto__ = GeneratorFunctionPrototype;
+      if (!(toStringTagSymbol in genFun)) {
+        genFun[toStringTagSymbol] = "GeneratorFunction";
+      }
+    }
+    genFun.prototype = Object.create(Gp);
+    return genFun;
+  };
+
+  // Within the body of any async function, `await x` is transformed to
+  // `yield regeneratorRuntime.awrap(x)`, so that the runtime can test
+  // `hasOwn.call(value, "__await")` to determine if the yielded value is
+  // meant to be awaited.
+  exports.awrap = function(arg) {
+    return { __await: arg };
+  };
+
+  function AsyncIterator(generator, PromiseImpl) {
+    function invoke(method, arg, resolve, reject) {
+      var record = tryCatch(generator[method], generator, arg);
+      if (record.type === "throw") {
+        reject(record.arg);
+      } else {
+        var result = record.arg;
+        var value = result.value;
+        if (value &&
+            typeof value === "object" &&
+            hasOwn.call(value, "__await")) {
+          return PromiseImpl.resolve(value.__await).then(function(value) {
+            invoke("next", value, resolve, reject);
+          }, function(err) {
+            invoke("throw", err, resolve, reject);
+          });
+        }
+
+        return PromiseImpl.resolve(value).then(function(unwrapped) {
+          // When a yielded Promise is resolved, its final value becomes
+          // the .value of the Promise<{value,done}> result for the
+          // current iteration.
+          result.value = unwrapped;
+          resolve(result);
+        }, function(error) {
+          // If a rejected Promise was yielded, throw the rejection back
+          // into the async generator function so it can be handled there.
+          return invoke("throw", error, resolve, reject);
+        });
+      }
+    }
+
+    var previousPromise;
+
+    function enqueue(method, arg) {
+      function callInvokeWithMethodAndArg() {
+        return new PromiseImpl(function(resolve, reject) {
+          invoke(method, arg, resolve, reject);
+        });
+      }
+
+      return previousPromise =
+        // If enqueue has been called before, then we want to wait until
+        // all previous Promises have been resolved before calling invoke,
+        // so that results are always delivered in the correct order. If
+        // enqueue has not been called before, then it is important to
+        // call invoke immediately, without waiting on a callback to fire,
+        // so that the async generator function has the opportunity to do
+        // any necessary setup in a predictable way. This predictability
+        // is why the Promise constructor synchronously invokes its
+        // executor callback, and why async functions synchronously
+        // execute code before the first await. Since we implement simple
+        // async functions in terms of async generators, it is especially
+        // important to get this right, even though it requires care.
+        previousPromise ? previousPromise.then(
+          callInvokeWithMethodAndArg,
+          // Avoid propagating failures to Promises returned by later
+          // invocations of the iterator.
+          callInvokeWithMethodAndArg
+        ) : callInvokeWithMethodAndArg();
+    }
+
+    // Define the unified helper method that is used to implement .next,
+    // .throw, and .return (see defineIteratorMethods).
+    this._invoke = enqueue;
+  }
+
+  defineIteratorMethods(AsyncIterator.prototype);
+  AsyncIterator.prototype[asyncIteratorSymbol] = function () {
+    return this;
+  };
+  exports.AsyncIterator = AsyncIterator;
+
+  // Note that simple async functions are implemented on top of
+  // AsyncIterator objects; they just return a Promise for the value of
+  // the final result produced by the iterator.
+  exports.async = function(innerFn, outerFn, self, tryLocsList, PromiseImpl) {
+    if (PromiseImpl === void 0) PromiseImpl = Promise;
+
+    var iter = new AsyncIterator(
+      wrap(innerFn, outerFn, self, tryLocsList),
+      PromiseImpl
+    );
+
+    return exports.isGeneratorFunction(outerFn)
+      ? iter // If outerFn is a generator, return the full iterator.
+      : iter.next().then(function(result) {
+          return result.done ? result.value : iter.next();
+        });
+  };
+
+  function makeInvokeMethod(innerFn, self, context) {
+    var state = GenStateSuspendedStart;
+
+    return function invoke(method, arg) {
+      if (state === GenStateExecuting) {
+        throw new Error("Generator is already running");
+      }
+
+      if (state === GenStateCompleted) {
+        if (method === "throw") {
+          throw arg;
+        }
+
+        // Be forgiving, per 25.3.3.3.3 of the spec:
+        // https://people.mozilla.org/~jorendorff/es6-draft.html#sec-generatorresume
+        return doneResult();
+      }
+
+      context.method = method;
+      context.arg = arg;
+
+      while (true) {
+        var delegate = context.delegate;
+        if (delegate) {
+          var delegateResult = maybeInvokeDelegate(delegate, context);
+          if (delegateResult) {
+            if (delegateResult === ContinueSentinel) continue;
+            return delegateResult;
+          }
+        }
+
+        if (context.method === "next") {
+          // Setting context._sent for legacy support of Babel's
+          // function.sent implementation.
+          context.sent = context._sent = context.arg;
+
+        } else if (context.method === "throw") {
+          if (state === GenStateSuspendedStart) {
+            state = GenStateCompleted;
+            throw context.arg;
+          }
+
+          context.dispatchException(context.arg);
+
+        } else if (context.method === "return") {
+          context.abrupt("return", context.arg);
+        }
+
+        state = GenStateExecuting;
+
+        var record = tryCatch(innerFn, self, context);
+        if (record.type === "normal") {
+          // If an exception is thrown from innerFn, we leave state ===
+          // GenStateExecuting and loop back for another invocation.
+          state = context.done
+            ? GenStateCompleted
+            : GenStateSuspendedYield;
+
+          if (record.arg === ContinueSentinel) {
+            continue;
+          }
+
+          return {
+            value: record.arg,
+            done: context.done
+          };
+
+        } else if (record.type === "throw") {
+          state = GenStateCompleted;
+          // Dispatch the exception by looping back around to the
+          // context.dispatchException(context.arg) call above.
+          context.method = "throw";
+          context.arg = record.arg;
+        }
+      }
+    };
+  }
+
+  // Call delegate.iterator[context.method](context.arg) and handle the
+  // result, either by returning a { value, done } result from the
+  // delegate iterator, or by modifying context.method and context.arg,
+  // setting context.delegate to null, and returning the ContinueSentinel.
+  function maybeInvokeDelegate(delegate, context) {
+    var method = delegate.iterator[context.method];
+    if (method === undefined) {
+      // A .throw or .return when the delegate iterator has no .throw
+      // method always terminates the yield* loop.
+      context.delegate = null;
+
+      if (context.method === "throw") {
+        // Note: ["return"] must be used for ES3 parsing compatibility.
+        if (delegate.iterator["return"]) {
+          // If the delegate iterator has a return method, give it a
+          // chance to clean up.
+          context.method = "return";
+          context.arg = undefined;
+          maybeInvokeDelegate(delegate, context);
+
+          if (context.method === "throw") {
+            // If maybeInvokeDelegate(context) changed context.method from
+            // "return" to "throw", let that override the TypeError below.
+            return ContinueSentinel;
+          }
+        }
+
+        context.method = "throw";
+        context.arg = new TypeError(
+          "The iterator does not provide a 'throw' method");
+      }
+
+      return ContinueSentinel;
+    }
+
+    var record = tryCatch(method, delegate.iterator, context.arg);
+
+    if (record.type === "throw") {
+      context.method = "throw";
+      context.arg = record.arg;
+      context.delegate = null;
+      return ContinueSentinel;
+    }
+
+    var info = record.arg;
+
+    if (! info) {
+      context.method = "throw";
+      context.arg = new TypeError("iterator result is not an object");
+      context.delegate = null;
+      return ContinueSentinel;
+    }
+
+    if (info.done) {
+      // Assign the result of the finished delegate to the temporary
+      // variable specified by delegate.resultName (see delegateYield).
+      context[delegate.resultName] = info.value;
+
+      // Resume execution at the desired location (see delegateYield).
+      context.next = delegate.nextLoc;
+
+      // If context.method was "throw" but the delegate handled the
+      // exception, let the outer generator proceed normally. If
+      // context.method was "next", forget context.arg since it has been
+      // "consumed" by the delegate iterator. If context.method was
+      // "return", allow the original .return call to continue in the
+      // outer generator.
+      if (context.method !== "return") {
+        context.method = "next";
+        context.arg = undefined;
+      }
+
+    } else {
+      // Re-yield the result returned by the delegate method.
+      return info;
+    }
+
+    // The delegate iterator is finished, so forget it and continue with
+    // the outer generator.
+    context.delegate = null;
+    return ContinueSentinel;
+  }
+
+  // Define Generator.prototype.{next,throw,return} in terms of the
+  // unified ._invoke helper method.
+  defineIteratorMethods(Gp);
+
+  Gp[toStringTagSymbol] = "Generator";
+
+  // A Generator should always return itself as the iterator object when the
+  // @@iterator function is called on it. Some browsers' implementations of the
+  // iterator prototype chain incorrectly implement this, causing the Generator
+  // object to not be returned from this call. This ensures that doesn't happen.
+  // See https://github.com/facebook/regenerator/issues/274 for more details.
+  Gp[iteratorSymbol] = function() {
+    return this;
+  };
+
+  Gp.toString = function() {
+    return "[object Generator]";
+  };
+
+  function pushTryEntry(locs) {
+    var entry = { tryLoc: locs[0] };
+
+    if (1 in locs) {
+      entry.catchLoc = locs[1];
+    }
+
+    if (2 in locs) {
+      entry.finallyLoc = locs[2];
+      entry.afterLoc = locs[3];
+    }
+
+    this.tryEntries.push(entry);
+  }
+
+  function resetTryEntry(entry) {
+    var record = entry.completion || {};
+    record.type = "normal";
+    delete record.arg;
+    entry.completion = record;
+  }
+
+  function Context(tryLocsList) {
+    // The root entry object (effectively a try statement without a catch
+    // or a finally block) gives us a place to store values thrown from
+    // locations where there is no enclosing try statement.
+    this.tryEntries = [{ tryLoc: "root" }];
+    tryLocsList.forEach(pushTryEntry, this);
+    this.reset(true);
+  }
+
+  exports.keys = function(object) {
+    var keys = [];
+    for (var key in object) {
+      keys.push(key);
+    }
+    keys.reverse();
+
+    // Rather than returning an object with a next method, we keep
+    // things simple and return the next function itself.
+    return function next() {
+      while (keys.length) {
+        var key = keys.pop();
+        if (key in object) {
+          next.value = key;
+          next.done = false;
+          return next;
+        }
+      }
+
+      // To avoid creating an additional object, we just hang the .value
+      // and .done properties off the next function object itself. This
+      // also ensures that the minifier will not anonymize the function.
+      next.done = true;
+      return next;
+    };
+  };
+
+  function values(iterable) {
+    if (iterable) {
+      var iteratorMethod = iterable[iteratorSymbol];
+      if (iteratorMethod) {
+        return iteratorMethod.call(iterable);
+      }
+
+      if (typeof iterable.next === "function") {
+        return iterable;
+      }
+
+      if (!isNaN(iterable.length)) {
+        var i = -1, next = function next() {
+          while (++i < iterable.length) {
+            if (hasOwn.call(iterable, i)) {
+              next.value = iterable[i];
+              next.done = false;
+              return next;
+            }
+          }
+
+          next.value = undefined;
+          next.done = true;
+
+          return next;
+        };
+
+        return next.next = next;
+      }
+    }
+
+    // Return an iterator with no values.
+    return { next: doneResult };
+  }
+  exports.values = values;
+
+  function doneResult() {
+    return { value: undefined, done: true };
+  }
+
+  Context.prototype = {
+    constructor: Context,
+
+    reset: function(skipTempReset) {
+      this.prev = 0;
+      this.next = 0;
+      // Resetting context._sent for legacy support of Babel's
+      // function.sent implementation.
+      this.sent = this._sent = undefined;
+      this.done = false;
+      this.delegate = null;
+
+      this.method = "next";
+      this.arg = undefined;
+
+      this.tryEntries.forEach(resetTryEntry);
+
+      if (!skipTempReset) {
+        for (var name in this) {
+          // Not sure about the optimal order of these conditions:
+          if (name.charAt(0) === "t" &&
+              hasOwn.call(this, name) &&
+              !isNaN(+name.slice(1))) {
+            this[name] = undefined;
+          }
+        }
+      }
+    },
+
+    stop: function() {
+      this.done = true;
+
+      var rootEntry = this.tryEntries[0];
+      var rootRecord = rootEntry.completion;
+      if (rootRecord.type === "throw") {
+        throw rootRecord.arg;
+      }
+
+      return this.rval;
+    },
+
+    dispatchException: function(exception) {
+      if (this.done) {
+        throw exception;
+      }
+
+      var context = this;
+      function handle(loc, caught) {
+        record.type = "throw";
+        record.arg = exception;
+        context.next = loc;
+
+        if (caught) {
+          // If the dispatched exception was caught by a catch block,
+          // then let that catch block handle the exception normally.
+          context.method = "next";
+          context.arg = undefined;
+        }
+
+        return !! caught;
+      }
+
+      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+        var entry = this.tryEntries[i];
+        var record = entry.completion;
+
+        if (entry.tryLoc === "root") {
+          // Exception thrown outside of any try block that could handle
+          // it, so set the completion value of the entire function to
+          // throw the exception.
+          return handle("end");
+        }
+
+        if (entry.tryLoc <= this.prev) {
+          var hasCatch = hasOwn.call(entry, "catchLoc");
+          var hasFinally = hasOwn.call(entry, "finallyLoc");
+
+          if (hasCatch && hasFinally) {
+            if (this.prev < entry.catchLoc) {
+              return handle(entry.catchLoc, true);
+            } else if (this.prev < entry.finallyLoc) {
+              return handle(entry.finallyLoc);
+            }
+
+          } else if (hasCatch) {
+            if (this.prev < entry.catchLoc) {
+              return handle(entry.catchLoc, true);
+            }
+
+          } else if (hasFinally) {
+            if (this.prev < entry.finallyLoc) {
+              return handle(entry.finallyLoc);
+            }
+
+          } else {
+            throw new Error("try statement without catch or finally");
+          }
+        }
+      }
+    },
+
+    abrupt: function(type, arg) {
+      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+        var entry = this.tryEntries[i];
+        if (entry.tryLoc <= this.prev &&
+            hasOwn.call(entry, "finallyLoc") &&
+            this.prev < entry.finallyLoc) {
+          var finallyEntry = entry;
+          break;
+        }
+      }
+
+      if (finallyEntry &&
+          (type === "break" ||
+           type === "continue") &&
+          finallyEntry.tryLoc <= arg &&
+          arg <= finallyEntry.finallyLoc) {
+        // Ignore the finally entry if control is not jumping to a
+        // location outside the try/catch block.
+        finallyEntry = null;
+      }
+
+      var record = finallyEntry ? finallyEntry.completion : {};
+      record.type = type;
+      record.arg = arg;
+
+      if (finallyEntry) {
+        this.method = "next";
+        this.next = finallyEntry.finallyLoc;
+        return ContinueSentinel;
+      }
+
+      return this.complete(record);
+    },
+
+    complete: function(record, afterLoc) {
+      if (record.type === "throw") {
+        throw record.arg;
+      }
+
+      if (record.type === "break" ||
+          record.type === "continue") {
+        this.next = record.arg;
+      } else if (record.type === "return") {
+        this.rval = this.arg = record.arg;
+        this.method = "return";
+        this.next = "end";
+      } else if (record.type === "normal" && afterLoc) {
+        this.next = afterLoc;
+      }
+
+      return ContinueSentinel;
+    },
+
+    finish: function(finallyLoc) {
+      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+        var entry = this.tryEntries[i];
+        if (entry.finallyLoc === finallyLoc) {
+          this.complete(entry.completion, entry.afterLoc);
+          resetTryEntry(entry);
+          return ContinueSentinel;
+        }
+      }
+    },
+
+    "catch": function(tryLoc) {
+      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+        var entry = this.tryEntries[i];
+        if (entry.tryLoc === tryLoc) {
+          var record = entry.completion;
+          if (record.type === "throw") {
+            var thrown = record.arg;
+            resetTryEntry(entry);
+          }
+          return thrown;
+        }
+      }
+
+      // The context.catch method must only be called with a location
+      // argument that corresponds to a known catch block.
+      throw new Error("illegal catch attempt");
+    },
+
+    delegateYield: function(iterable, resultName, nextLoc) {
+      this.delegate = {
+        iterator: values(iterable),
+        resultName: resultName,
+        nextLoc: nextLoc
+      };
+
+      if (this.method === "next") {
+        // Deliberately forget the last sent value so that we don't
+        // accidentally pass it on to the delegate.
+        this.arg = undefined;
+      }
+
+      return ContinueSentinel;
+    }
+  };
+
+  // Regardless of whether this script is executing as a CommonJS module
+  // or not, return the runtime object so that we can declare the variable
+  // regeneratorRuntime in the outer scope, which allows this module to be
+  // injected easily by `bin/regenerator --include-runtime script.js`.
+  return exports;
+
+}(
+  // If this script is executing as a CommonJS module, use module.exports
+  // as the regeneratorRuntime namespace. Otherwise create a new empty
+  // object. Either way, the resulting object will be used to initialize
+  // the regeneratorRuntime variable at the top of this file.
+   true ? module.exports : undefined
+));
+
+try {
+  regeneratorRuntime = runtime;
+} catch (accidentalStrictMode) {
+  // This module should not be running in strict mode, so the above
+  // assignment should always work unless something is misconfigured. Just
+  // in case runtime.js accidentally runs in strict mode, we can escape
+  // strict mode using a global Function call. This could conceivably fail
+  // if a Content Security Policy forbids using Function, but in that case
+  // the proper solution is to fix the accidental strict mode problem. If
+  // you've misconfigured your bundler to force strict mode and applied a
+  // CSP to forbid Function, and you're not willing to fix either of those
+  // problems, please detail your unique predicament in a GitHub issue.
+  Function("r", "regeneratorRuntime = r")(runtime);
+}
 
 
 /***/ }),
@@ -3291,6 +4287,91 @@ if (DESCRIPTORS && !(NAME in FunctionPrototype)) {
 
 /***/ }),
 
+/***/ "b575":
+/***/ (function(module, exports, __webpack_require__) {
+
+var global = __webpack_require__("da84");
+var getOwnPropertyDescriptor = __webpack_require__("06cf").f;
+var classof = __webpack_require__("c6b6");
+var macrotask = __webpack_require__("2cf4").set;
+var IS_IOS = __webpack_require__("1cdc");
+
+var MutationObserver = global.MutationObserver || global.WebKitMutationObserver;
+var process = global.process;
+var Promise = global.Promise;
+var IS_NODE = classof(process) == 'process';
+// Node.js 11 shows ExperimentalWarning on getting `queueMicrotask`
+var queueMicrotaskDescriptor = getOwnPropertyDescriptor(global, 'queueMicrotask');
+var queueMicrotask = queueMicrotaskDescriptor && queueMicrotaskDescriptor.value;
+
+var flush, head, last, notify, toggle, node, promise, then;
+
+// modern engines have queueMicrotask method
+if (!queueMicrotask) {
+  flush = function () {
+    var parent, fn;
+    if (IS_NODE && (parent = process.domain)) parent.exit();
+    while (head) {
+      fn = head.fn;
+      head = head.next;
+      try {
+        fn();
+      } catch (error) {
+        if (head) notify();
+        else last = undefined;
+        throw error;
+      }
+    } last = undefined;
+    if (parent) parent.enter();
+  };
+
+  // Node.js
+  if (IS_NODE) {
+    notify = function () {
+      process.nextTick(flush);
+    };
+  // browsers with MutationObserver, except iOS - https://github.com/zloirock/core-js/issues/339
+  } else if (MutationObserver && !IS_IOS) {
+    toggle = true;
+    node = document.createTextNode('');
+    new MutationObserver(flush).observe(node, { characterData: true });
+    notify = function () {
+      node.data = toggle = !toggle;
+    };
+  // environments with maybe non-completely correct, but existent Promise
+  } else if (Promise && Promise.resolve) {
+    // Promise.resolve without an argument throws an error in LG WebOS 2
+    promise = Promise.resolve(undefined);
+    then = promise.then;
+    notify = function () {
+      then.call(promise, flush);
+    };
+  // for other environments - macrotask based on:
+  // - setImmediate
+  // - MessageChannel
+  // - window.postMessag
+  // - onreadystatechange
+  // - setTimeout
+  } else {
+    notify = function () {
+      // strange IE + webpack dev server bug - use .call(global)
+      macrotask.call(global, flush);
+    };
+  }
+}
+
+module.exports = queueMicrotask || function (fn) {
+  var task = { fn: fn, next: undefined };
+  if (last) last.next = task;
+  if (!head) {
+    head = task;
+    notify();
+  } last = task;
+};
+
+
+/***/ }),
+
 /***/ "b622":
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -3623,6 +4704,38 @@ module.exports = store;
 
 /***/ }),
 
+/***/ "c740":
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var $ = __webpack_require__("23e7");
+var $findIndex = __webpack_require__("b727").findIndex;
+var addToUnscopables = __webpack_require__("44d2");
+var arrayMethodUsesToLength = __webpack_require__("ae40");
+
+var FIND_INDEX = 'findIndex';
+var SKIPS_HOLES = true;
+
+var USES_TO_LENGTH = arrayMethodUsesToLength(FIND_INDEX);
+
+// Shouldn't skip holes
+if (FIND_INDEX in []) Array(1)[FIND_INDEX](function () { SKIPS_HOLES = false; });
+
+// `Array.prototype.findIndex` method
+// https://tc39.github.io/ecma262/#sec-array.prototype.findindex
+$({ target: 'Array', proto: true, forced: SKIPS_HOLES || !USES_TO_LENGTH }, {
+  findIndex: function findIndex(callbackfn /* , that = undefined */) {
+    return $findIndex(this, callbackfn, arguments.length > 1 ? arguments[1] : undefined);
+  }
+});
+
+// https://tc39.github.io/ecma262/#sec-array.prototype-@@unscopables
+addToUnscopables(FIND_INDEX);
+
+
+/***/ }),
+
 /***/ "c8ba":
 /***/ (function(module, exports) {
 
@@ -3742,6 +4855,25 @@ var EXISTS = isObject(document) && isObject(document.createElement);
 
 module.exports = function (it) {
   return EXISTS ? document.createElement(it) : {};
+};
+
+
+/***/ }),
+
+/***/ "cdf9":
+/***/ (function(module, exports, __webpack_require__) {
+
+var anObject = __webpack_require__("825a");
+var isObject = __webpack_require__("861d");
+var newPromiseCapability = __webpack_require__("f069");
+
+module.exports = function (C, x) {
+  anObject(C);
+  if (isObject(x) && x.constructor === C) return x;
+  var promiseCapability = newPromiseCapability.f(C);
+  var resolve = promiseCapability.resolve;
+  resolve(x);
+  return promiseCapability.promise;
 };
 
 
@@ -4390,6 +5522,19 @@ addToUnscopables('entries');
 
 /***/ }),
 
+/***/ "e2cc":
+/***/ (function(module, exports, __webpack_require__) {
+
+var redefine = __webpack_require__("6eeb");
+
+module.exports = function (target, src, options) {
+  for (var key in src) redefine(target, key, src[key], options);
+  return target;
+};
+
+
+/***/ }),
+
 /***/ "e439":
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -4419,6 +5564,407 @@ $({ target: 'Object', stat: true, forced: FORCED, sham: !DESCRIPTORS }, {
 var wellKnownSymbol = __webpack_require__("b622");
 
 exports.f = wellKnownSymbol;
+
+
+/***/ }),
+
+/***/ "e667":
+/***/ (function(module, exports) {
+
+module.exports = function (exec) {
+  try {
+    return { error: false, value: exec() };
+  } catch (error) {
+    return { error: true, value: error };
+  }
+};
+
+
+/***/ }),
+
+/***/ "e6cf":
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var $ = __webpack_require__("23e7");
+var IS_PURE = __webpack_require__("c430");
+var global = __webpack_require__("da84");
+var getBuiltIn = __webpack_require__("d066");
+var NativePromise = __webpack_require__("fea9");
+var redefine = __webpack_require__("6eeb");
+var redefineAll = __webpack_require__("e2cc");
+var setToStringTag = __webpack_require__("d44e");
+var setSpecies = __webpack_require__("2626");
+var isObject = __webpack_require__("861d");
+var aFunction = __webpack_require__("1c0b");
+var anInstance = __webpack_require__("19aa");
+var classof = __webpack_require__("c6b6");
+var inspectSource = __webpack_require__("8925");
+var iterate = __webpack_require__("2266");
+var checkCorrectnessOfIteration = __webpack_require__("1c7e");
+var speciesConstructor = __webpack_require__("4840");
+var task = __webpack_require__("2cf4").set;
+var microtask = __webpack_require__("b575");
+var promiseResolve = __webpack_require__("cdf9");
+var hostReportErrors = __webpack_require__("44de");
+var newPromiseCapabilityModule = __webpack_require__("f069");
+var perform = __webpack_require__("e667");
+var InternalStateModule = __webpack_require__("69f3");
+var isForced = __webpack_require__("94ca");
+var wellKnownSymbol = __webpack_require__("b622");
+var V8_VERSION = __webpack_require__("2d00");
+
+var SPECIES = wellKnownSymbol('species');
+var PROMISE = 'Promise';
+var getInternalState = InternalStateModule.get;
+var setInternalState = InternalStateModule.set;
+var getInternalPromiseState = InternalStateModule.getterFor(PROMISE);
+var PromiseConstructor = NativePromise;
+var TypeError = global.TypeError;
+var document = global.document;
+var process = global.process;
+var $fetch = getBuiltIn('fetch');
+var newPromiseCapability = newPromiseCapabilityModule.f;
+var newGenericPromiseCapability = newPromiseCapability;
+var IS_NODE = classof(process) == 'process';
+var DISPATCH_EVENT = !!(document && document.createEvent && global.dispatchEvent);
+var UNHANDLED_REJECTION = 'unhandledrejection';
+var REJECTION_HANDLED = 'rejectionhandled';
+var PENDING = 0;
+var FULFILLED = 1;
+var REJECTED = 2;
+var HANDLED = 1;
+var UNHANDLED = 2;
+var Internal, OwnPromiseCapability, PromiseWrapper, nativeThen;
+
+var FORCED = isForced(PROMISE, function () {
+  var GLOBAL_CORE_JS_PROMISE = inspectSource(PromiseConstructor) !== String(PromiseConstructor);
+  if (!GLOBAL_CORE_JS_PROMISE) {
+    // V8 6.6 (Node 10 and Chrome 66) have a bug with resolving custom thenables
+    // https://bugs.chromium.org/p/chromium/issues/detail?id=830565
+    // We can't detect it synchronously, so just check versions
+    if (V8_VERSION === 66) return true;
+    // Unhandled rejections tracking support, NodeJS Promise without it fails @@species test
+    if (!IS_NODE && typeof PromiseRejectionEvent != 'function') return true;
+  }
+  // We need Promise#finally in the pure version for preventing prototype pollution
+  if (IS_PURE && !PromiseConstructor.prototype['finally']) return true;
+  // We can't use @@species feature detection in V8 since it causes
+  // deoptimization and performance degradation
+  // https://github.com/zloirock/core-js/issues/679
+  if (V8_VERSION >= 51 && /native code/.test(PromiseConstructor)) return false;
+  // Detect correctness of subclassing with @@species support
+  var promise = PromiseConstructor.resolve(1);
+  var FakePromise = function (exec) {
+    exec(function () { /* empty */ }, function () { /* empty */ });
+  };
+  var constructor = promise.constructor = {};
+  constructor[SPECIES] = FakePromise;
+  return !(promise.then(function () { /* empty */ }) instanceof FakePromise);
+});
+
+var INCORRECT_ITERATION = FORCED || !checkCorrectnessOfIteration(function (iterable) {
+  PromiseConstructor.all(iterable)['catch'](function () { /* empty */ });
+});
+
+// helpers
+var isThenable = function (it) {
+  var then;
+  return isObject(it) && typeof (then = it.then) == 'function' ? then : false;
+};
+
+var notify = function (promise, state, isReject) {
+  if (state.notified) return;
+  state.notified = true;
+  var chain = state.reactions;
+  microtask(function () {
+    var value = state.value;
+    var ok = state.state == FULFILLED;
+    var index = 0;
+    // variable length - can't use forEach
+    while (chain.length > index) {
+      var reaction = chain[index++];
+      var handler = ok ? reaction.ok : reaction.fail;
+      var resolve = reaction.resolve;
+      var reject = reaction.reject;
+      var domain = reaction.domain;
+      var result, then, exited;
+      try {
+        if (handler) {
+          if (!ok) {
+            if (state.rejection === UNHANDLED) onHandleUnhandled(promise, state);
+            state.rejection = HANDLED;
+          }
+          if (handler === true) result = value;
+          else {
+            if (domain) domain.enter();
+            result = handler(value); // can throw
+            if (domain) {
+              domain.exit();
+              exited = true;
+            }
+          }
+          if (result === reaction.promise) {
+            reject(TypeError('Promise-chain cycle'));
+          } else if (then = isThenable(result)) {
+            then.call(result, resolve, reject);
+          } else resolve(result);
+        } else reject(value);
+      } catch (error) {
+        if (domain && !exited) domain.exit();
+        reject(error);
+      }
+    }
+    state.reactions = [];
+    state.notified = false;
+    if (isReject && !state.rejection) onUnhandled(promise, state);
+  });
+};
+
+var dispatchEvent = function (name, promise, reason) {
+  var event, handler;
+  if (DISPATCH_EVENT) {
+    event = document.createEvent('Event');
+    event.promise = promise;
+    event.reason = reason;
+    event.initEvent(name, false, true);
+    global.dispatchEvent(event);
+  } else event = { promise: promise, reason: reason };
+  if (handler = global['on' + name]) handler(event);
+  else if (name === UNHANDLED_REJECTION) hostReportErrors('Unhandled promise rejection', reason);
+};
+
+var onUnhandled = function (promise, state) {
+  task.call(global, function () {
+    var value = state.value;
+    var IS_UNHANDLED = isUnhandled(state);
+    var result;
+    if (IS_UNHANDLED) {
+      result = perform(function () {
+        if (IS_NODE) {
+          process.emit('unhandledRejection', value, promise);
+        } else dispatchEvent(UNHANDLED_REJECTION, promise, value);
+      });
+      // Browsers should not trigger `rejectionHandled` event if it was handled here, NodeJS - should
+      state.rejection = IS_NODE || isUnhandled(state) ? UNHANDLED : HANDLED;
+      if (result.error) throw result.value;
+    }
+  });
+};
+
+var isUnhandled = function (state) {
+  return state.rejection !== HANDLED && !state.parent;
+};
+
+var onHandleUnhandled = function (promise, state) {
+  task.call(global, function () {
+    if (IS_NODE) {
+      process.emit('rejectionHandled', promise);
+    } else dispatchEvent(REJECTION_HANDLED, promise, state.value);
+  });
+};
+
+var bind = function (fn, promise, state, unwrap) {
+  return function (value) {
+    fn(promise, state, value, unwrap);
+  };
+};
+
+var internalReject = function (promise, state, value, unwrap) {
+  if (state.done) return;
+  state.done = true;
+  if (unwrap) state = unwrap;
+  state.value = value;
+  state.state = REJECTED;
+  notify(promise, state, true);
+};
+
+var internalResolve = function (promise, state, value, unwrap) {
+  if (state.done) return;
+  state.done = true;
+  if (unwrap) state = unwrap;
+  try {
+    if (promise === value) throw TypeError("Promise can't be resolved itself");
+    var then = isThenable(value);
+    if (then) {
+      microtask(function () {
+        var wrapper = { done: false };
+        try {
+          then.call(value,
+            bind(internalResolve, promise, wrapper, state),
+            bind(internalReject, promise, wrapper, state)
+          );
+        } catch (error) {
+          internalReject(promise, wrapper, error, state);
+        }
+      });
+    } else {
+      state.value = value;
+      state.state = FULFILLED;
+      notify(promise, state, false);
+    }
+  } catch (error) {
+    internalReject(promise, { done: false }, error, state);
+  }
+};
+
+// constructor polyfill
+if (FORCED) {
+  // 25.4.3.1 Promise(executor)
+  PromiseConstructor = function Promise(executor) {
+    anInstance(this, PromiseConstructor, PROMISE);
+    aFunction(executor);
+    Internal.call(this);
+    var state = getInternalState(this);
+    try {
+      executor(bind(internalResolve, this, state), bind(internalReject, this, state));
+    } catch (error) {
+      internalReject(this, state, error);
+    }
+  };
+  // eslint-disable-next-line no-unused-vars
+  Internal = function Promise(executor) {
+    setInternalState(this, {
+      type: PROMISE,
+      done: false,
+      notified: false,
+      parent: false,
+      reactions: [],
+      rejection: false,
+      state: PENDING,
+      value: undefined
+    });
+  };
+  Internal.prototype = redefineAll(PromiseConstructor.prototype, {
+    // `Promise.prototype.then` method
+    // https://tc39.github.io/ecma262/#sec-promise.prototype.then
+    then: function then(onFulfilled, onRejected) {
+      var state = getInternalPromiseState(this);
+      var reaction = newPromiseCapability(speciesConstructor(this, PromiseConstructor));
+      reaction.ok = typeof onFulfilled == 'function' ? onFulfilled : true;
+      reaction.fail = typeof onRejected == 'function' && onRejected;
+      reaction.domain = IS_NODE ? process.domain : undefined;
+      state.parent = true;
+      state.reactions.push(reaction);
+      if (state.state != PENDING) notify(this, state, false);
+      return reaction.promise;
+    },
+    // `Promise.prototype.catch` method
+    // https://tc39.github.io/ecma262/#sec-promise.prototype.catch
+    'catch': function (onRejected) {
+      return this.then(undefined, onRejected);
+    }
+  });
+  OwnPromiseCapability = function () {
+    var promise = new Internal();
+    var state = getInternalState(promise);
+    this.promise = promise;
+    this.resolve = bind(internalResolve, promise, state);
+    this.reject = bind(internalReject, promise, state);
+  };
+  newPromiseCapabilityModule.f = newPromiseCapability = function (C) {
+    return C === PromiseConstructor || C === PromiseWrapper
+      ? new OwnPromiseCapability(C)
+      : newGenericPromiseCapability(C);
+  };
+
+  if (!IS_PURE && typeof NativePromise == 'function') {
+    nativeThen = NativePromise.prototype.then;
+
+    // wrap native Promise#then for native async functions
+    redefine(NativePromise.prototype, 'then', function then(onFulfilled, onRejected) {
+      var that = this;
+      return new PromiseConstructor(function (resolve, reject) {
+        nativeThen.call(that, resolve, reject);
+      }).then(onFulfilled, onRejected);
+    // https://github.com/zloirock/core-js/issues/640
+    }, { unsafe: true });
+
+    // wrap fetch result
+    if (typeof $fetch == 'function') $({ global: true, enumerable: true, forced: true }, {
+      // eslint-disable-next-line no-unused-vars
+      fetch: function fetch(input /* , init */) {
+        return promiseResolve(PromiseConstructor, $fetch.apply(global, arguments));
+      }
+    });
+  }
+}
+
+$({ global: true, wrap: true, forced: FORCED }, {
+  Promise: PromiseConstructor
+});
+
+setToStringTag(PromiseConstructor, PROMISE, false, true);
+setSpecies(PROMISE);
+
+PromiseWrapper = getBuiltIn(PROMISE);
+
+// statics
+$({ target: PROMISE, stat: true, forced: FORCED }, {
+  // `Promise.reject` method
+  // https://tc39.github.io/ecma262/#sec-promise.reject
+  reject: function reject(r) {
+    var capability = newPromiseCapability(this);
+    capability.reject.call(undefined, r);
+    return capability.promise;
+  }
+});
+
+$({ target: PROMISE, stat: true, forced: IS_PURE || FORCED }, {
+  // `Promise.resolve` method
+  // https://tc39.github.io/ecma262/#sec-promise.resolve
+  resolve: function resolve(x) {
+    return promiseResolve(IS_PURE && this === PromiseWrapper ? PromiseConstructor : this, x);
+  }
+});
+
+$({ target: PROMISE, stat: true, forced: INCORRECT_ITERATION }, {
+  // `Promise.all` method
+  // https://tc39.github.io/ecma262/#sec-promise.all
+  all: function all(iterable) {
+    var C = this;
+    var capability = newPromiseCapability(C);
+    var resolve = capability.resolve;
+    var reject = capability.reject;
+    var result = perform(function () {
+      var $promiseResolve = aFunction(C.resolve);
+      var values = [];
+      var counter = 0;
+      var remaining = 1;
+      iterate(iterable, function (promise) {
+        var index = counter++;
+        var alreadyCalled = false;
+        values.push(undefined);
+        remaining++;
+        $promiseResolve.call(C, promise).then(function (value) {
+          if (alreadyCalled) return;
+          alreadyCalled = true;
+          values[index] = value;
+          --remaining || resolve(values);
+        }, reject);
+      });
+      --remaining || resolve(values);
+    });
+    if (result.error) reject(result.value);
+    return capability.promise;
+  },
+  // `Promise.race` method
+  // https://tc39.github.io/ecma262/#sec-promise.race
+  race: function race(iterable) {
+    var C = this;
+    var capability = newPromiseCapability(C);
+    var reject = capability.reject;
+    var result = perform(function () {
+      var $promiseResolve = aFunction(C.resolve);
+      iterate(iterable, function (promise) {
+        $promiseResolve.call(C, promise).then(capability.resolve, reject);
+      });
+    });
+    if (result.error) reject(result.value);
+    return capability.promise;
+  }
+});
 
 
 /***/ }),
@@ -4470,6 +6016,32 @@ var ArrayPrototype = Array.prototype;
 // check on default Array iterator
 module.exports = function (it) {
   return it !== undefined && (Iterators.Array === it || ArrayPrototype[ITERATOR] === it);
+};
+
+
+/***/ }),
+
+/***/ "f069":
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var aFunction = __webpack_require__("1c0b");
+
+var PromiseCapability = function (C) {
+  var resolve, reject;
+  this.promise = new C(function ($$resolve, $$reject) {
+    if (resolve !== undefined || reject !== undefined) throw TypeError('Bad Promise constructor');
+    resolve = $$resolve;
+    reject = $$reject;
+  });
+  this.resolve = aFunction(resolve);
+  this.reject = aFunction(reject);
+};
+
+// 25.4.1.5 NewPromiseCapability(C)
+module.exports.f = function (C) {
+  return new PromiseCapability(C);
 };
 
 
@@ -4578,763 +6150,6 @@ var web_dom_collections_for_each = __webpack_require__("159b");
 var external_commonjs_vue_commonjs2_vue_root_Vue_ = __webpack_require__("8bbf");
 var external_commonjs_vue_commonjs2_vue_root_Vue_default = /*#__PURE__*/__webpack_require__.n(external_commonjs_vue_commonjs2_vue_root_Vue_);
 
-// EXTERNAL MODULE: ./node_modules/core-js/modules/es.array.filter.js
-var es_array_filter = __webpack_require__("4de4");
-
-// EXTERNAL MODULE: ./node_modules/core-js/modules/es.function.name.js
-var es_function_name = __webpack_require__("b0c0");
-
-// CONCATENATED MODULE: ./src/components/vue-input-facade/tokens.js
-/* harmony default export */ var vue_input_facade_tokens = ({
-  '#': {
-    pattern: /\d/
-  },
-  X: {
-    pattern: /[0-9a-z]/i
-  },
-  S: {
-    pattern: /[a-z]/i
-  },
-  A: {
-    pattern: /[a-z]/i,
-    transform: function transform(v) {
-      return v.toLocaleUpperCase();
-    }
-  },
-  a: {
-    pattern: /[a-z]/i,
-    transform: function transform(v) {
-      return v.toLocaleLowerCase();
-    }
-  },
-  '\\': {
-    escape: true
-  }
-});
-// EXTERNAL MODULE: ./node_modules/core-js/modules/es.array.slice.js
-var es_array_slice = __webpack_require__("fb6a");
-
-// EXTERNAL MODULE: ./node_modules/core-js/modules/es.object.to-string.js
-var es_object_to_string = __webpack_require__("d3b7");
-
-// EXTERNAL MODULE: ./node_modules/core-js/modules/es.regexp.to-string.js
-var es_regexp_to_string = __webpack_require__("25f0");
-
-// EXTERNAL MODULE: ./node_modules/core-js/modules/es.array.includes.js
-var es_array_includes = __webpack_require__("caad");
-
-// CONCATENATED MODULE: ./src/components/vue-input-facade/core.js
-
-
-var CONFIG_KEY = '__input-facade__';
-function FacadeValue(val) {
-  this.masked = this.unmasked = val || '';
-}
-/**
- * Creates a CustomEvent('input') with detail = { facade: true }
- * used as a way to identify our own input event
- */
-
-function FacadeInputEvent() {
-  return new CustomEvent('input', {
-    bubbles: true,
-    cancelable: true,
-    detail: {
-      facade: true
-    }
-  });
-}
-/**
- * Transform an array or string config into an object
- *
- * @param {object} config The mask config object
- * @param {object} modifiers An object of modifier flags that can influence the masking process
- */
-
-function normalizeConfig(config, modifiers) {
-  if (Array.isArray(config) || typeof config === 'string') {
-    config = {
-      mask: config
-    };
-  }
-
-  return Object.assign(config || {}, modifiers);
-}
-/**
- * ensure that the element we're attaching to is an input element
- * if not try to find an input element in this elements childrens
- *
- * @param {HTMLInputElement} el
- */
-
-function getInputElement(el) {
-  var inputElement = el instanceof HTMLInputElement ? el : el.querySelector('input');
-  /* istanbul ignore next */
-
-  if (!inputElement) {
-    throw new Error('facade directive requires an input element');
-  }
-
-  return inputElement;
-}
-/**
- * Input event handler
- *
- * @param {Event} event The event object
- */
-
-function inputHandler(event) {
-  var target = event.target,
-      detail = event.detail; // We dont need to run this method on the event we emit (prevent event loop)
-
-  if (detail && detail.facade) {
-    return false;
-  } // since we will be emitting our own custom input event
-  // we can stop propagation of this native event
-
-
-  event.stopPropagation();
-  var originalValue = target.value;
-  var originalPosition = target.selectionEnd;
-  var oldValue = target[CONFIG_KEY].oldValue;
-  updateValue(target, null, {
-    emit: false
-  }, event);
-  updateCursor(event, originalValue, originalPosition);
-
-  if (oldValue !== target.value) {
-    target.dispatchEvent(FacadeInputEvent());
-  }
-}
-/**
- * Updates the cursor position to the right place after the masking rule was applied
- *
- * @param {InputEvent} event the event that trigger this update
- * @param {String} originalValue the original input value, prior to masking
- * @param {Number} originalPosition the original cursor position
- */
-
-function updateCursor(event, originalValue, originalPosition) {
-  var target = event.target; // setSelectionRange applies only to inputs of types text, search, URL, tel and password.
-  // https://developer.mozilla.org/en-US/docs/Web/API/HTMLInputElement/setSelectionRange
-
-  var supportedInputType = ['text', 'tel', 'search', null].includes(target.getAttribute('type'));
-  var config = target[CONFIG_KEY] && target[CONFIG_KEY].config;
-
-  if (target !== document.activeElement || !supportedInputType || !config.mask) {
-    return;
-  } // get some information about the cursor based on the original value
-
-
-  var isInsertEvent = ['insertText', 'insertFromPaste'].includes(event.inputType);
-  var wasCursorAtEnd = isInsertEvent && originalPosition == originalValue.length;
-  var lastInsertedChar = isInsertEvent && originalValue[originalPosition - 1];
-  var newValue = target.value.toLocaleLowerCase(); // set the cursor position to an appropriate location
-
-  var cursorPosition = originalPosition;
-
-  if (wasCursorAtEnd) {
-    cursorPosition = newValue.length;
-  } else if (lastInsertedChar) {
-    lastInsertedChar = lastInsertedChar.toLocaleLowerCase();
-    var newPosition = cursorPosition; // if the last inserted char was changed, increment position until find it again
-
-    while (newPosition <= newValue.length && newValue.charAt(newPosition - 1) !== lastInsertedChar) {
-      newPosition++;
-    } // if we didnt find the digit must be an unacceptable char, leave the cursor where it was
-
-
-    cursorPosition = newPosition <= newValue.length ? newPosition : cursorPosition - 1;
-  }
-
-  target.setSelectionRange(cursorPosition, cursorPosition);
-  setTimeout(function () {
-    /* istanbul ignore next */
-    target.setSelectionRange(cursorPosition, cursorPosition);
-  }, 0);
-}
-/**
- * Updates the element's value and unmasked value based on the masking config rules
- *
- * @param {HTMLInputElement} el The input element to update
- * @param {object} [options]
- * @param {Boolean} options.emit Wether to dispatch a new InputEvent or not
- * @param {Boolean} options.force Forces the update even if the old value and the new value are the same
- * @param {Event} [event] The event that triggered this this update, null if not triggered by an input event
- */
-
-function updateValue(el, vnode) {
-  var _ref = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
-      _ref$emit = _ref.emit,
-      emit = _ref$emit === void 0 ? true : _ref$emit,
-      _ref$force = _ref.force,
-      force = _ref$force === void 0 ? false : _ref$force;
-
-  var event = arguments.length > 3 ? arguments[3] : undefined;
-  var _el$CONFIG_KEY = el[CONFIG_KEY],
-      config = _el$CONFIG_KEY.config,
-      oldValue = _el$CONFIG_KEY.oldValue;
-  var currentValue = vnode && vnode.data.model ? vnode.data.model.value : el.value;
-  oldValue = oldValue || '';
-  currentValue = currentValue || '';
-
-  if (force || oldValue !== currentValue) {
-    var newValue = masker(currentValue, config);
-
-    if (event && typeof config.formatter === 'function') {
-      var formattedValue = config.formatter(newValue, event);
-
-      if (typeof formattedValue === 'string') {
-        newValue = masker(formattedValue, config);
-      } else if (formattedValue === false) {
-        el.value = oldValue;
-        return;
-      }
-    }
-
-    el[CONFIG_KEY].oldValue = newValue.masked;
-    el.unmaskedValue = newValue.unmasked; // safari makes the cursor jump to the end if el.value gets assign even if to the same value
-
-    if (el.value !== newValue.masked) {
-      el.value = newValue.masked;
-    } // this part needs to be outside the above IF statement for vuetify in firefox
-    // drawback is that we endup with two's input events in firefox
-
-
-    emit && el.dispatchEvent(FacadeInputEvent());
-  }
-}
-// CONCATENATED MODULE: ./src/components/vue-input-facade/masker.js
-
-
-
-
-
-var tokenDefinitions = vue_input_facade_tokens;
-/**
- * Overrides the default global token definitions
- *
- * @param {object} tokens the new token object
- */
-
-function setTokens(tokens) {
-  if (!tokens) return;
-  tokenDefinitions = tokens;
-}
-/**
- * Given an array of masks, determines which one is the appropriate one based on the value
- *
- * @param {String} inputValue the inputValue value to mask
- * @param {object} config
- * @param {Array} config.masks the list of masks to choose from
- * @returns {FacadeValue} facade value object
- */
-
-function dynamic(inputValue, config) {
-  var masks = config.masks.slice().sort(function (a, b) {
-    return a.length - b.length;
-  });
-
-  var withConfig = function withConfig(overrides) {
-    return Object.assign({}, config, overrides);
-  }; // this method will choose a facade based on which one exposes more data from the input
-
-
-  var chooseBestFacade = function chooseBestFacade(currentValue, nextMask) {
-    var nextValue = formatter(inputValue, withConfig({
-      mask: nextMask
-    }));
-    var currentLength = currentValue.unmasked.length;
-    var nextLength = nextValue.unmasked.length;
-    return nextLength > currentLength ? nextValue : currentValue;
-  }; // empty masks array
-
-
-  if (!masks.length) {
-    return new FacadeValue();
-  }
-
-  var firstMask = masks.shift();
-  var output = formatter(inputValue, withConfig({
-    mask: firstMask
-  }));
-
-  while (masks.length) {
-    var nextMask = masks.shift();
-    output = chooseBestFacade(output, nextMask);
-  }
-
-  return output;
-}
-/**
- * Formats the value based on the given masking rule
- *
- * @param {string} value the value to mask
- * @param {object} config
- * @param {string} config.mask the masking string
- * @param {object} config.tokens the tokens to add/override to the global
- * @param {boolean} config.prefill whether or not to add masking characters to the input before the user types
- * @param {boolean} config.short to keep the string as short as possible (not append extra chars at the end)
- */
-
-function formatter(value, config) {
-  var _config$mask = config.mask,
-      mask = _config$mask === void 0 ? '' : _config$mask,
-      tokens = config.tokens,
-      _config$prefill = config.prefill,
-      prefill = _config$prefill === void 0 ? false : _config$prefill,
-      _config$short = config.short,
-      short = _config$short === void 0 ? false : _config$short; // append/override global tokens instead of complete override
-
-  tokens = tokens ? Object.assign({}, tokenDefinitions, tokens) : tokenDefinitions;
-  var output = new FacadeValue();
-  var escaped = false;
-  var valueIndex = 0;
-  var maskIndex = 0;
-  var accumulator = '';
-
-  while (maskIndex < mask.length) {
-    var maskChar = mask[maskIndex];
-    var _masker = tokens[maskChar];
-    var char = value[valueIndex]; // no more input characters and next character is a masked one
-
-    if (!char && _masker) break;
-
-    if (_masker && !escaped) {
-      // when is escape char, do not mask, just continue
-      if (_masker.escape) {
-        escaped = true;
-        maskIndex++;
-        continue;
-      }
-
-      if (_masker.pattern.test(char)) {
-        char = _masker.transform ? _masker.transform(char) : char;
-        output.unmasked += char;
-        output.masked += accumulator + char;
-        accumulator = '';
-        maskIndex++;
-      }
-
-      valueIndex++;
-    } else {
-      accumulator += maskChar;
-      if (char === maskChar) valueIndex++; // user typed the same char
-
-      escaped = false;
-      maskIndex++;
-    }
-  } // if there is no unmasked value, set masked to empty to avoid showing masking
-  // characters in an otherwise empty input, unless prefill is set ot true
-
-
-  if (prefill && !output.unmasked || !short && output.unmasked) {
-    output.masked += accumulator;
-  }
-
-  return output;
-}
-/**
- * Facade to formatter/dynamic when mask is String or Array
- *
- * @param {String} value the value to mask
- * @param {*} config the masking config
- * @returns {FacadeValue} facade value object
- */
-
-function masker(value, config) {
-  // ensure we have proper input
-  value = (value || '').toString();
-  config = normalizeConfig(config); // disable on empty mask
-
-  if (!config.mask) {
-    return new FacadeValue(value);
-  }
-
-  return Array.isArray(config.mask) ? dynamic(value, Object.assign({}, config, {
-    masks: config.mask
-  })) : formatter(value, config);
-}
-// CONCATENATED MODULE: ./src/components/vue-input-facade/directive.js
-
-var directive_CONFIG_KEY = CONFIG_KEY;
-/* harmony default export */ var directive = ({
-  bind: function bind(el, _ref, vnode) {
-    var value = _ref.value,
-        modifiers = _ref.modifiers;
-    el = getInputElement(el);
-    el.addEventListener('input', inputHandler, true);
-    var config = normalizeConfig(value, modifiers);
-    el[directive_CONFIG_KEY] = {
-      config: config
-    }; // set initial value
-
-    updateValue(el, vnode, {
-      emit: false,
-      force: config.prefill
-    });
-  },
-  update: function update(el, _ref2, vnode) {
-    var value = _ref2.value,
-        oldValue = _ref2.oldValue,
-        modifiers = _ref2.modifiers;
-    el = getInputElement(el);
-
-    if (value !== oldValue) {
-      el[directive_CONFIG_KEY].config = normalizeConfig(value, modifiers);
-      updateValue(el, vnode, {
-        force: true
-      });
-    } else {
-      updateValue(el, vnode);
-    }
-  },
-  unbind: function unbind(el) {
-    el.removeEventListener('input', inputHandler, true);
-  }
-});
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"2001146f-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/components/vue-input-facade/component.vue?vue&type=template&id=02eb5694&
-var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('input',{directives:[{name:"facade",rawName:"v-facade",value:(_vm.config),expression:"config"}],attrs:{"type":"text"},domProps:{"value":_vm.maskedValue},on:{"input":_vm.onInput,"change":_vm.onChange,"blur":function($event){return _vm.$emit('blur')},"focus":function($event){return _vm.$emit('focus')}}})}
-var staticRenderFns = []
-
-
-// CONCATENATED MODULE: ./src/components/vue-input-facade/component.vue?vue&type=template&id=02eb5694&
-
-// EXTERNAL MODULE: ./node_modules/core-js/modules/es.number.constructor.js
-var es_number_constructor = __webpack_require__("a9e3");
-
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/components/vue-input-facade/component.vue?vue&type=script&lang=js&
-
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-
-/**
- * The component is basically a wrapper around a native input element, as such it inherits all
- * properties available to [HTMLInputElement](https://developer.mozilla.org/en-US/docs/Web/API/HTMLInputElement).
- *
- * However it provides a cleaner and more straight forward interface to the directive's features.
- *
- * @example ../docs/component.md
- */
-
-/* harmony default export */ var componentvue_type_script_lang_js_ = ({
-  name: 'InputFacade',
-  props: {
-    /**
-     * A function to format the value after applying the mask. The function will receive an
-     * object with the masked and unmasked value. The result of this function will determine
-     * what happens with the value.
-     * <br />
-     * If a string is returned, then that string will pass through the masker function once more and its value
-     * will be set to the input.  If false (boolean) is returned, the input will be rejected and the
-     * previous value will be restored.  Otherwise the facade logic will continue as usual.
-     * @since v1.3
-     */
-    formatter: Function,
-
-    /**
-     * Vue's v-model .lazy modifier does not currently work with custom components. If you wish to have your v-model
-     * updated only during the change event instead of on input, enable this property. <b>Note: This works by supressing
-     * input events and only emitting a single input event at the same time as the change event.</b>
-     * @since v1.3
-     */
-    lazy: {
-      type: Boolean,
-      default: false
-    },
-
-    /**
-     * The mask pattern for this input, it could be a single pattern or multiple patterns when its an array.
-     */
-    mask: [String, Array],
-
-    /**
-     * Whether to emit the value masked or unmasked
-     */
-    masked: {
-      type: Boolean,
-      default: false
-    },
-
-    /**
-     * If the mask starts with static charaters, prefill the field with said characters
-     * @since v1.3
-     */
-    prefill: {
-      type: Boolean,
-      default: false
-    },
-
-    /**
-     * Keep the value short by not showing static characters until after typing
-     * @since v1.3
-     */
-    short: {
-      type: Boolean,
-      default: false
-    },
-
-    /**
-     * Token object to override the defaults with
-     */
-    tokens: Object,
-
-    /**
-     * The input's value
-     * @model
-     */
-    value: [String, Number]
-  },
-  directives: {
-    facade: directive
-  },
-  data: function data() {
-    return {
-      maskedValue: this.value,
-      unmaskedValue: null
-    };
-  },
-  watch: {
-    value: function value(newValue) {
-      // avoid trigering the directive's update hook when we emit
-      // the unmasked value to the parent component
-      if (newValue !== this.emittedValue) {
-        this.maskedValue = newValue;
-      }
-    },
-    mask: function mask(newMask) {
-      if (!newMask) {
-        // when removing the masking rule, set the displayed value to the unmasked
-        // to remove any unwanted masking characters from the input
-        this.maskedValue = this.unmaskedValue;
-      }
-    },
-    masked: function masked() {
-      this.emitInput();
-    }
-  },
-  computed: {
-    config: function config() {
-      return {
-        mask: this.mask,
-        tokens: this.tokens,
-        formatter: this.formatter,
-        prefill: this.prefill,
-        short: this.short
-      };
-    },
-    emittedValue: function emittedValue() {
-      return this.mask && this.masked ? this.maskedValue : this.unmaskedValue;
-    }
-  },
-  methods: {
-    onInput: function onInput(_ref) {
-      var target = _ref.target;
-      this.maskedValue = target.value;
-      this.unmaskedValue = target.unmaskedValue;
-
-      if (!this.lazy) {
-        this.emitInput();
-      }
-    },
-    onChange: function onChange() {
-      /**
-       * Fires when the value has been commited on the input. Usually on blur.
-       * @param {String} value The input's current value, masked or unmasked.
-       */
-      this.$emit('change', this.emittedValue);
-
-      if (this.lazy) {
-        this.emitInput();
-      }
-    },
-    emitInput: function emitInput() {
-      /**
-       * Fires when the value of the input has been changed.
-       * @param {String} value The input's current value, masked or unmasked.
-       */
-      this.$emit('input', this.emittedValue);
-    }
-  }
-});
-// CONCATENATED MODULE: ./src/components/vue-input-facade/component.vue?vue&type=script&lang=js&
- /* harmony default export */ var vue_input_facade_componentvue_type_script_lang_js_ = (componentvue_type_script_lang_js_); 
-// CONCATENATED MODULE: ./node_modules/vue-loader/lib/runtime/componentNormalizer.js
-/* globals __VUE_SSR_CONTEXT__ */
-
-// IMPORTANT: Do NOT use ES2015 features in this file (except for modules).
-// This module is a runtime utility for cleaner component module output and will
-// be included in the final webpack user bundle.
-
-function normalizeComponent (
-  scriptExports,
-  render,
-  staticRenderFns,
-  functionalTemplate,
-  injectStyles,
-  scopeId,
-  moduleIdentifier, /* server only */
-  shadowMode /* vue-cli only */
-) {
-  // Vue.extend constructor export interop
-  var options = typeof scriptExports === 'function'
-    ? scriptExports.options
-    : scriptExports
-
-  // render functions
-  if (render) {
-    options.render = render
-    options.staticRenderFns = staticRenderFns
-    options._compiled = true
-  }
-
-  // functional template
-  if (functionalTemplate) {
-    options.functional = true
-  }
-
-  // scopedId
-  if (scopeId) {
-    options._scopeId = 'data-v-' + scopeId
-  }
-
-  var hook
-  if (moduleIdentifier) { // server build
-    hook = function (context) {
-      // 2.3 injection
-      context =
-        context || // cached call
-        (this.$vnode && this.$vnode.ssrContext) || // stateful
-        (this.parent && this.parent.$vnode && this.parent.$vnode.ssrContext) // functional
-      // 2.2 with runInNewContext: true
-      if (!context && typeof __VUE_SSR_CONTEXT__ !== 'undefined') {
-        context = __VUE_SSR_CONTEXT__
-      }
-      // inject component styles
-      if (injectStyles) {
-        injectStyles.call(this, context)
-      }
-      // register component module identifier for async chunk inferrence
-      if (context && context._registeredComponents) {
-        context._registeredComponents.add(moduleIdentifier)
-      }
-    }
-    // used by ssr in case component is cached and beforeCreate
-    // never gets called
-    options._ssrRegister = hook
-  } else if (injectStyles) {
-    hook = shadowMode
-      ? function () {
-        injectStyles.call(
-          this,
-          (options.functional ? this.parent : this).$root.$options.shadowRoot
-        )
-      }
-      : injectStyles
-  }
-
-  if (hook) {
-    if (options.functional) {
-      // for template-only hot-reload because in that case the render fn doesn't
-      // go through the normalizer
-      options._injectStyles = hook
-      // register for functional component in vue file
-      var originalRender = options.render
-      options.render = function renderWithStyleInjection (h, context) {
-        hook.call(context)
-        return originalRender(h, context)
-      }
-    } else {
-      // inject component registration as beforeCreate hook
-      var existing = options.beforeCreate
-      options.beforeCreate = existing
-        ? [].concat(existing, hook)
-        : [hook]
-    }
-  }
-
-  return {
-    exports: scriptExports,
-    options: options
-  }
-}
-
-// CONCATENATED MODULE: ./src/components/vue-input-facade/component.vue
-
-
-
-
-
-/* normalize component */
-
-var component = normalizeComponent(
-  vue_input_facade_componentvue_type_script_lang_js_,
-  render,
-  staticRenderFns,
-  false,
-  null,
-  null,
-  null
-  
-)
-
-/* harmony default export */ var vue_input_facade_component = (component.exports);
-// CONCATENATED MODULE: ./src/components/vue-input-facade/plugin.js
-
-
-
-
-
-
-/**
- * Vue plugin definittion
- *
- * @param {Vue} Vue the vue instance
- * @param {Object} options.tokens the tokens to use as global tokens
- * @param {Object} options.name the tokens to use as global tokens
- */
-
-function plugin_install(Vue) {
-  var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
-  // override the default tokens
-  if (options.tokens) {
-    setTokens(options.tokens);
-  }
-
-  Vue.component(vue_input_facade_component.name, vue_input_facade_component);
-  Vue.directive(options.name || 'facade', directive);
-  Vue.filter(options.name || 'facade', filter);
-}
-/**
- * Utility function to be used as a vue filter
- *
- * @param {String} value the value to apply the filter to
- * @param {*} config the masking config
- * @returns {string} the masked value as returned by the masker function
- */
-
-
-function filter(value, config) {
-  return masker(value, config).masked;
-}
-
-/* harmony default export */ var vue_input_facade_plugin = (plugin_install);
- // Install by default if included from script tag
-
-if (typeof window !== 'undefined' && window.Vue) {
-  window.Vue.use(plugin_install);
-}
 // CONCATENATED MODULE: ./node_modules/vue-currency-input/dist/vue-currency-input.esm.js
 /**
  * Vue Currency Input 1.20.1
@@ -5779,7 +6594,7 @@ var addEventListener = function (el) {
     }
   });
 };
-var vue_currency_input_esm_directive = {
+var directive = {
   bind: function bind (el, ref, ref$1) {
     var value = ref.value;
     var context = ref$1.context;
@@ -5798,7 +6613,7 @@ var vue_currency_input_esm_directive = {
   }
 };
 
-var vue_currency_input_esm_component = {
+var component = {
   render: function render (h) {
     var this$1 = this;
     return h('input', {
@@ -5820,7 +6635,7 @@ var vue_currency_input_esm_component = {
     })
   },
   directives: {
-    currency: vue_currency_input_esm_directive
+    currency: directive
   },
   name: 'CurrencyInput',
   props: {
@@ -5889,12 +6704,12 @@ var vue_currency_input_esm_component = {
 var vue_currency_input_esm_plugin = {
   install: function install (Vue, ref) {
     if ( ref === void 0 ) ref = {};
-    var componentName = ref.componentName; if ( componentName === void 0 ) componentName = vue_currency_input_esm_component.name;
+    var componentName = ref.componentName; if ( componentName === void 0 ) componentName = component.name;
     var directiveName = ref.directiveName; if ( directiveName === void 0 ) directiveName = 'currency';
     var globalOptions = ref.globalOptions; if ( globalOptions === void 0 ) globalOptions = {};
     Vue.prototype.$CI_DEFAULT_OPTIONS = Object.assign({}, DEFAULT_OPTIONS, globalOptions);
-    Vue.component(componentName, vue_currency_input_esm_component);
-    Vue.directive(directiveName, vue_currency_input_esm_directive);
+    Vue.component(componentName, component);
+    Vue.directive(directiveName, directive);
     Vue.prototype.$parseCurrency = function (str, options) {
       if ( options === void 0 ) options = {};
       return parseCurrency(str, Object.assign({}, globalOptions, options));
@@ -5909,9 +6724,9 @@ if (typeof window !== 'undefined' && window.Vue) {
 /* harmony default export */ var vue_currency_input_esm = (vue_currency_input_esm_plugin);
 
 
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"2001146f-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/components/DateInput.vue?vue&type=template&id=3894b8d3&
-var DateInputvue_type_template_id_3894b8d3_render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('input',_vm._g(_vm._b({ref:"input",attrs:{"type":_vm.type},domProps:{"value":_vm.formatedValue}},'input',_vm.$attrs,false),_vm.listeners))}
-var DateInputvue_type_template_id_3894b8d3_staticRenderFns = []
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"3c9e19d4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/components/DateInput.vue?vue&type=template&id=3894b8d3&
+var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('input',_vm._g(_vm._b({ref:"input",attrs:{"type":_vm.type},domProps:{"value":_vm.formatedValue}},'input',_vm.$attrs,false),_vm.listeners))}
+var staticRenderFns = []
 
 
 // CONCATENATED MODULE: ./src/components/DateInput.vue?vue&type=template&id=3894b8d3&
@@ -5919,11 +6734,20 @@ var DateInputvue_type_template_id_3894b8d3_staticRenderFns = []
 // EXTERNAL MODULE: ./node_modules/core-js/modules/es.array.concat.js
 var es_array_concat = __webpack_require__("99af");
 
+// EXTERNAL MODULE: ./node_modules/core-js/modules/es.object.to-string.js
+var es_object_to_string = __webpack_require__("d3b7");
+
+// EXTERNAL MODULE: ./node_modules/core-js/modules/es.regexp.to-string.js
+var es_regexp_to_string = __webpack_require__("25f0");
+
 // EXTERNAL MODULE: ./node_modules/core-js/modules/es.string.pad-start.js
 var es_string_pad_start = __webpack_require__("4d90");
 
 // EXTERNAL MODULE: ./node_modules/core-js/modules/es.symbol.js
 var es_symbol = __webpack_require__("a4d3");
+
+// EXTERNAL MODULE: ./node_modules/core-js/modules/es.array.filter.js
+var es_array_filter = __webpack_require__("4de4");
 
 // EXTERNAL MODULE: ./node_modules/core-js/modules/es.object.get-own-property-descriptor.js
 var es_object_get_own_property_descriptor = __webpack_require__("e439");
@@ -6102,6 +6926,106 @@ function _objectSpread2(target) {
 });
 // CONCATENATED MODULE: ./src/components/DateInput.vue?vue&type=script&lang=js&
  /* harmony default export */ var components_DateInputvue_type_script_lang_js_ = (DateInputvue_type_script_lang_js_); 
+// CONCATENATED MODULE: ./node_modules/vue-loader/lib/runtime/componentNormalizer.js
+/* globals __VUE_SSR_CONTEXT__ */
+
+// IMPORTANT: Do NOT use ES2015 features in this file (except for modules).
+// This module is a runtime utility for cleaner component module output and will
+// be included in the final webpack user bundle.
+
+function normalizeComponent (
+  scriptExports,
+  render,
+  staticRenderFns,
+  functionalTemplate,
+  injectStyles,
+  scopeId,
+  moduleIdentifier, /* server only */
+  shadowMode /* vue-cli only */
+) {
+  // Vue.extend constructor export interop
+  var options = typeof scriptExports === 'function'
+    ? scriptExports.options
+    : scriptExports
+
+  // render functions
+  if (render) {
+    options.render = render
+    options.staticRenderFns = staticRenderFns
+    options._compiled = true
+  }
+
+  // functional template
+  if (functionalTemplate) {
+    options.functional = true
+  }
+
+  // scopedId
+  if (scopeId) {
+    options._scopeId = 'data-v-' + scopeId
+  }
+
+  var hook
+  if (moduleIdentifier) { // server build
+    hook = function (context) {
+      // 2.3 injection
+      context =
+        context || // cached call
+        (this.$vnode && this.$vnode.ssrContext) || // stateful
+        (this.parent && this.parent.$vnode && this.parent.$vnode.ssrContext) // functional
+      // 2.2 with runInNewContext: true
+      if (!context && typeof __VUE_SSR_CONTEXT__ !== 'undefined') {
+        context = __VUE_SSR_CONTEXT__
+      }
+      // inject component styles
+      if (injectStyles) {
+        injectStyles.call(this, context)
+      }
+      // register component module identifier for async chunk inferrence
+      if (context && context._registeredComponents) {
+        context._registeredComponents.add(moduleIdentifier)
+      }
+    }
+    // used by ssr in case component is cached and beforeCreate
+    // never gets called
+    options._ssrRegister = hook
+  } else if (injectStyles) {
+    hook = shadowMode
+      ? function () {
+        injectStyles.call(
+          this,
+          (options.functional ? this.parent : this).$root.$options.shadowRoot
+        )
+      }
+      : injectStyles
+  }
+
+  if (hook) {
+    if (options.functional) {
+      // for template-only hot-reload because in that case the render fn doesn't
+      // go through the normalizer
+      options._injectStyles = hook
+      // register for functional component in vue file
+      var originalRender = options.render
+      options.render = function renderWithStyleInjection (h, context) {
+        hook.call(context)
+        return originalRender(h, context)
+      }
+    } else {
+      // inject component registration as beforeCreate hook
+      var existing = options.beforeCreate
+      options.beforeCreate = existing
+        ? [].concat(existing, hook)
+        : [hook]
+    }
+  }
+
+  return {
+    exports: scriptExports,
+    options: options
+  }
+}
+
 // CONCATENATED MODULE: ./src/components/DateInput.vue
 
 
@@ -6112,8 +7036,8 @@ function _objectSpread2(target) {
 
 var DateInput_component = normalizeComponent(
   components_DateInputvue_type_script_lang_js_,
-  DateInputvue_type_template_id_3894b8d3_render,
-  DateInputvue_type_template_id_3894b8d3_staticRenderFns,
+  render,
+  staticRenderFns,
   false,
   null,
   null,
@@ -6122,7 +7046,7 @@ var DateInput_component = normalizeComponent(
 )
 
 /* harmony default export */ var DateInput = (DateInput_component.exports);
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"2001146f-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/components/DurationInput.vue?vue&type=template&id=1046eb49&
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"3c9e19d4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/components/DurationInput.vue?vue&type=template&id=1046eb49&
 var DurationInputvue_type_template_id_1046eb49_render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('TextInput',_vm._g(_vm._b({ref:"input",attrs:{"value":_vm.displayedText}},'TextInput',_vm.$attrs,false),_vm.listeners))}
 var DurationInputvue_type_template_id_1046eb49_staticRenderFns = []
 
@@ -6141,8 +7065,14 @@ var es_array_map = __webpack_require__("d81d");
 // EXTERNAL MODULE: ./node_modules/core-js/modules/es.array.reduce.js
 var es_array_reduce = __webpack_require__("13d5");
 
+// EXTERNAL MODULE: ./node_modules/core-js/modules/es.array.slice.js
+var es_array_slice = __webpack_require__("fb6a");
+
 // EXTERNAL MODULE: ./node_modules/core-js/modules/es.math.trunc.js
 var es_math_trunc = __webpack_require__("b65f");
+
+// EXTERNAL MODULE: ./node_modules/core-js/modules/es.number.constructor.js
+var es_number_constructor = __webpack_require__("a9e3");
 
 // EXTERNAL MODULE: ./node_modules/core-js/modules/es.number.epsilon.js
 var es_number_epsilon = __webpack_require__("35b3");
@@ -6192,6 +7122,9 @@ var es_symbol_iterator = __webpack_require__("d28b");
 // EXTERNAL MODULE: ./node_modules/core-js/modules/es.array.from.js
 var es_array_from = __webpack_require__("a630");
 
+// EXTERNAL MODULE: ./node_modules/core-js/modules/es.array.iterator.js
+var es_array_iterator = __webpack_require__("e260");
+
 // EXTERNAL MODULE: ./node_modules/core-js/modules/es.string.iterator.js
 var es_string_iterator = __webpack_require__("3ca3");
 
@@ -6206,9 +7139,13 @@ var web_dom_collections_iterator = __webpack_require__("ddb0");
 
 
 
+
 function _iterableToArray(iter) {
   if (typeof Symbol !== "undefined" && Symbol.iterator in Object(iter)) return Array.from(iter);
 }
+// EXTERNAL MODULE: ./node_modules/core-js/modules/es.function.name.js
+var es_function_name = __webpack_require__("b0c0");
+
 // CONCATENATED MODULE: ./node_modules/@babel/runtime/helpers/esm/unsupportedIterableToArray.js
 
 
@@ -6237,14 +7174,75 @@ function _nonIterableSpread() {
 function _toConsumableArray(arr) {
   return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread();
 }
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"2001146f-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/components/TextInput.vue?vue&type=template&id=5087cae2&
-var TextInputvue_type_template_id_5087cae2_render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('input-facade',_vm._g(_vm._b({ref:"input",attrs:{"mask":_vm.mask,"value":_vm.text}},'input-facade',_vm.$attrs,false),_vm.listeners))}
-var TextInputvue_type_template_id_5087cae2_staticRenderFns = []
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"3c9e19d4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/components/TextInput.vue?vue&type=template&id=7ac69c87&
+var TextInputvue_type_template_id_7ac69c87_render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('input',_vm._g(_vm._b({ref:"input",domProps:{"value":_vm.maskedText}},'input',_vm.$attrs,false),_vm.listeners))}
+var TextInputvue_type_template_id_7ac69c87_staticRenderFns = []
 
 
-// CONCATENATED MODULE: ./src/components/TextInput.vue?vue&type=template&id=5087cae2&
+// CONCATENATED MODULE: ./src/components/TextInput.vue?vue&type=template&id=7ac69c87&
 
+// EXTERNAL MODULE: ./node_modules/core-js/modules/es.array.find.js
+var es_array_find = __webpack_require__("7db0");
+
+// EXTERNAL MODULE: ./node_modules/core-js/modules/es.array.find-index.js
+var es_array_find_index = __webpack_require__("c740");
+
+// EXTERNAL MODULE: ./node_modules/regenerator-runtime/runtime.js
+var runtime = __webpack_require__("96cf");
+
+// EXTERNAL MODULE: ./node_modules/core-js/modules/es.promise.js
+var es_promise = __webpack_require__("e6cf");
+
+// CONCATENATED MODULE: ./node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js
+
+
+
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) {
+  try {
+    var info = gen[key](arg);
+    var value = info.value;
+  } catch (error) {
+    reject(error);
+    return;
+  }
+
+  if (info.done) {
+    resolve(value);
+  } else {
+    Promise.resolve(value).then(_next, _throw);
+  }
+}
+
+function _asyncToGenerator(fn) {
+  return function () {
+    var self = this,
+        args = arguments;
+    return new Promise(function (resolve, reject) {
+      var gen = fn.apply(self, args);
+
+      function _next(value) {
+        asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value);
+      }
+
+      function _throw(err) {
+        asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err);
+      }
+
+      _next(undefined);
+    });
+  };
+}
 // CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/components/TextInput.vue?vue&type=script&lang=js&
+
+
+
+
+
+
+
+
+
+
 
 //
 //
@@ -6256,37 +7254,419 @@ var TextInputvue_type_template_id_5087cae2_staticRenderFns = []
     value: String,
     mask: {
       type: [String, Array],
-      default: ''
+      default: ""
+    },
+    masked: {
+      // by default emits the value unformatted, change to true to format with the mask
+      type: Boolean,
+      default: false // unformatted
+
+    },
+    tokens: {
+      type: Object,
+      default: function _default() {
+        return {
+          "*": {
+            pattern: /[\s\S]/
+          },
+          // Any character
+          "#": {
+            pattern: /\d/
+          },
+          // Number
+          X: {
+            pattern: /[0-9a-z]/i
+          },
+          // Alphanumeric
+          H: {
+            pattern: /[0-9A-F]/i,
+            transform: function transform(v) {
+              return v.toLocaleUpperCase();
+            }
+          },
+          // Hexadecimal
+          S: {
+            pattern: /[a-z]/i
+          },
+          // Letter in any case
+          A: {
+            pattern: /[a-z]/i,
+            transform: function transform(v) {
+              return v.toLocaleUpperCase();
+            }
+          },
+          // Letter in upper case
+          a: {
+            pattern: /[a-z]/i,
+            transform: function transform(v) {
+              return v.toLocaleLowerCase();
+            }
+          },
+          // Letter in lower case
+          "\\": {
+            escape: true
+          } // Escape character
+
+        };
+      }
     }
   },
   data: function data() {
     return {
-      text: this.value
+      history: [],
+      historyIndex: -1
     };
   },
   watch: {
-    value: function value(newValue) {
-      this.text = newValue;
+    value: {
+      immediate: true,
+      handler: function handler(newValue) {
+        this.refresh(newValue);
+      }
+    },
+    mask: function mask() {
+      this.refresh(this.rawText);
+    },
+    tokens: function tokens() {
+      this.refresh(this.rawText);
     }
   },
   computed: {
     listeners: function listeners() {
-      var vm = this;
+      var _this = this;
+
       return _objectSpread2(_objectSpread2({}, this.$listeners), {}, {
-        input: function input(value) {
-          // const value = event.target.value;
-          vm.text = value;
-          vm.$emit("input", value);
+        keydown: function keydown(event) {
+          var oldMaskerData = _this.masker(_this.rawText, _this.mask, _this.tokens);
+
+          if (oldMaskerData.conversions) {
+            if (event.key === "Backspace" || event.key === "Delete") {
+              // Backspace and Delete
+              // ab--|cd    masked value
+              //     4      cursor index
+              // a|b|cd      raw value cursor
+              // a|cd       raw value after backspace
+              // a|c--d     masked value after backspace
+              //  1         cursor index after backspace
+              // a|b-|-cd   masked value
+              //  1  3      cursors indexes
+              // a|b|cd     raw value cursors
+              // a|cd       raw value after backspace
+              // a|c--d     masked value after backspace
+              //  1         cursor index after backspace
+              // ab-|-c|d   masked value
+              //    3  5    cursors indexes
+              // ab|c|d     raw value cursors
+              // ab|d       raw value after backspace
+              // ab--|d     masked value after backspace
+              //     4      cursor index after backspace
+              // find cursors indexes
+              var selectionStart = event.target.selectionStart;
+              var selectionEnd = event.target.selectionEnd; // get raw value
+
+              var oldRawValue = oldMaskerData.rawValue; // convert the masked indexes to the raw indexes
+
+              var length = oldMaskerData.conversions.length;
+
+              var startConversion = _toConsumableArray(oldMaskerData.conversions).reverse().find(function (conversion, reverseIndex) {
+                return length - reverseIndex <= selectionStart && conversion.isRaw;
+              } // the previous raw
+              );
+
+              var rawStartIndex = startConversion ? startConversion.inputIndex + 1 : 0;
+              var endConversion = oldMaskerData.conversions.find(function (conversion, index) {
+                return index >= selectionEnd && conversion.isRaw;
+              } // the next raw
+              );
+              var rawEndIndex = endConversion ? endConversion.inputIndex : oldRawValue.length; // if only one cursor
+
+              if (rawStartIndex === rawEndIndex) {
+                // if backspace
+                if (event.key === "Backspace") {
+                  // add a cursor before the previous character
+                  rawStartIndex = rawStartIndex > 0 ? rawStartIndex - 1 : 0; // if delete
+                } else if (event.key === "Delete") {
+                  // add a cursor after the character
+                  rawEndIndex = rawEndIndex < oldRawValue.length ? rawEndIndex + 1 : oldRawValue.length;
+                }
+              } // if not edge case
+
+
+              if (!(selectionStart === 0 && event.key === "Backspace" || selectionEnd === length && event.key === "Delete")) {
+                // set input value with raw value after backspace/delete
+                event.target.value = oldRawValue; // set input cursor at the start cursor
+
+                event.target.setSelectionRange(rawStartIndex, rawEndIndex);
+              }
+            }
+          }
+
+          _this.$emit("keydown", event);
+        },
+        input: function input(event) {
+          if (event.inputType === "historyUndo") {
+            var lastValue = _this.history[_this.historyIndex].maskedValue;
+
+            _this.undo();
+
+            var maskerData = _this.history[_this.historyIndex];
+
+            if (maskerData.maskedValue !== lastValue) {
+              _this.emitInput(maskerData);
+            }
+          } else if (event.inputType === "historyRedo") {
+            var _lastValue = _this.history[_this.historyIndex].maskedValue;
+
+            _this.redo();
+
+            var _maskerData = _this.history[_this.historyIndex];
+
+            if (_maskerData.maskedValue !== _lastValue) {
+              _this.emitInput(_maskerData);
+            }
+          } else {
+            // maskIt
+            var cursorIndex = event.target.selectionStart;
+
+            var _maskerData2 = _this.masker(event.target.value, _this.mask, _this.tokens);
+
+            _this.forceDisplayRefresh(_maskerData2.maskedValue);
+
+            var newCursorIndex = _this.updateCursor(event, _maskerData2, cursorIndex);
+
+            var _lastValue2 = _this.history[_this.historyIndex].maskedValue;
+
+            if (_maskerData2.maskedValue !== _lastValue2) {
+              var historyData = _objectSpread2(_objectSpread2({}, _maskerData2), {}, {
+                cursorIndex: newCursorIndex
+              });
+
+              _this.addHistory(historyData);
+
+              _this.emitInput(_maskerData2);
+            }
+          }
         }
       });
+    },
+    rawText: function rawText() {
+      return this.history[this.historyIndex].rawValue;
+    },
+    maskedText: function maskedText() {
+      return this.history[this.historyIndex].maskedValue;
     }
   },
   methods: {
     focus: function focus() {
-      this.$refs.input.$el.focus();
+      this.$refs.input.focus();
     },
-    refresh: function refresh() {
-      this.text = this.value;
+    emitInput: function emitInput(maskerData) {
+      var emitValue = this.masked ? maskerData.maskedValue : maskerData.rawValue;
+      this.$emit("input", emitValue);
+    },
+    refresh: function refresh(rawValue) {
+      var maskerData = this.masker(rawValue, this.mask, this.tokens);
+      this.addHistory(maskerData);
+      return maskerData;
+    },
+    forceDisplayRefresh: function forceDisplayRefresh(value) {
+      this.$refs.input.value = value; // force display refresh
+    },
+    addHistory: function addHistory(maskerData) {
+      this.history = [].concat(_toConsumableArray(this.history.slice(0, this.historyIndex + 1)), [maskerData]);
+      this.historyIndex = this.history.length - 1;
+    },
+    undo: function undo() {
+      this.historyIndex = this.historyIndex > 0 ? this.historyIndex - 1 : 0;
+      var cursorIndex = this.history[this.historyIndex].cursorIndex;
+
+      if (cursorIndex !== void 0) {
+        this.setCursor(cursorIndex);
+        this.focus();
+      }
+    },
+    redo: function redo() {
+      this.historyIndex = this.historyIndex < this.history.length ? this.historyIndex + 1 : this.history.length;
+      var cursorIndex = this.history[this.historyIndex].cursorIndex;
+
+      if (cursorIndex !== void 0) {
+        this.setCursor(cursorIndex);
+        this.focus();
+      }
+    },
+    updateCursor: function updateCursor(event, maskerData, cursorIndex) {
+      if (!maskerData.conversions) {
+        // no mask
+        return cursorIndex;
+      } // find the first character after the cursor index
+
+
+      var nextIndex = maskerData.conversions.findIndex(function (conversion) {
+        return conversion.inputIndex >= cursorIndex;
+      }); // if no character after nextIndex is equal to -1, so set the new cursor to the end of the string
+
+      var newCursor = nextIndex >= 0 ? nextIndex : maskerData.conversions.length;
+      this.setCursor(newCursor);
+      return newCursor;
+    },
+    setCursor: function setCursor(index) {
+      var _this2 = this;
+
+      return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                _this2.$refs.input.setSelectionRange(index, index);
+
+                _context.next = 3;
+                return _this2.$nextTick();
+
+              case 3:
+                _this2.$refs.input.setSelectionRange(index, index);
+
+              case 4:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee);
+      }))();
+    },
+    masker: function masker(value, mask, tokens) {
+      var maskArray = mask ? Array.isArray(mask) ? _toConsumableArray(mask) : [mask] : [];
+      return this.dynamicMask(value, maskArray, tokens);
+    },
+    dynamicMask: function dynamicMask(value, masks, tokens) {
+      var _this3 = this;
+
+      if (!masks.length) return {
+        input: value,
+        rawValue: value,
+        maskedValue: value
+      };
+      var orderedMasks = masks.sort(function (a, b) {
+        return a.length - b.length;
+      });
+      var maskedValues = orderedMasks.map(function (mask) {
+        return _this3.maskit(value, mask, tokens);
+      });
+      var selectedValue = maskedValues.sort(function (a, b) {
+        return b.rawValue.length - a.rawValue.length;
+      })[0]; // select the mask with the most raw characters
+
+      return selectedValue;
+    },
+    maskit: function maskit() {
+      var value = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "";
+      var mask = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : "";
+      var tokens = arguments.length > 2 ? arguments[2] : undefined;
+
+      /**
+       * masked data: {
+       *   input: '#1asdfg23456',
+       *   rawValue: '1ADF23',
+       *   maskedValue: '#1ADF23',
+       *   mask: '\#HHHHHH'
+       *   conversions: [
+       *     {value: '#', inputIndex: 0, isRaw: false},
+       *     {value: '1', inputIndex: 1, isRaw: true},
+       *     {value: 'A', inputIndex: 2, isRaw: true},
+       *     {value: 'D', inputIndex: 4, isRaw: true},
+       *     {value: 'F', inputIndex: 5, isRaw: true},
+       *     {value: '2', inputIndex: 7, isRaw: true},
+       *     {value: '3', inputIndex: 8, isRaw: true},
+       *   ]
+       * }
+       */
+      var maskIndex = 0;
+      var valueIndex = 0;
+      var conversions = [];
+
+      while (maskIndex < mask.length && valueIndex < value.length) {
+        var cMask = mask[maskIndex];
+        var masker = tokens[cMask];
+        var cValue = value[valueIndex];
+
+        if (masker && !masker.escape) {
+          if (masker.pattern.test(cValue)) {
+            var transformedValue = masker.transform ? masker.transform(cValue) : cValue;
+            conversions.push({
+              value: transformedValue,
+              inputIndex: valueIndex,
+              maskIndex: maskIndex,
+              isRaw: true
+            });
+            maskIndex++;
+          }
+
+          valueIndex++;
+        } else {
+          if (masker && masker.escape) {
+            maskIndex++; // take the next mask char and treat it as char
+
+            cMask = mask[maskIndex] || ""; // if not char after the escape
+          }
+
+          var conversion = {
+            value: cMask,
+            inputIndex: void 0,
+            maskIndex: maskIndex,
+            isRaw: false
+          };
+
+          if (cValue === cMask) {
+            // user typed the same char
+            conversion.inputIndex = valueIndex;
+            valueIndex++;
+          }
+
+          conversions.push(conversion);
+          maskIndex++;
+        }
+      } // fix mask that ends with a char: (#)
+
+
+      var restConversions = [];
+
+      while (maskIndex < mask.length) {
+        var cMask2 = mask[maskIndex];
+        var masker2 = tokens[cMask2];
+
+        if (masker2 && !masker2.escape) {
+          restConversions = [];
+          break;
+        } else {
+          if (masker2 && masker2.escape) {
+            maskIndex++; // take the next mask char and treat it as char
+
+            cMask2 = mask[maskIndex] || ""; // if not char after the escape
+          }
+        }
+
+        if (cMask2) restConversions.push({
+          value: cMask2,
+          inputIndex: void 0,
+          maskIndex: maskIndex,
+          isRaw: false
+        });
+        maskIndex++;
+      }
+
+      conversions = [].concat(_toConsumableArray(conversions), _toConsumableArray(restConversions));
+      return {
+        input: value,
+        rawValue: conversions.filter(function (conversion) {
+          return conversion.isRaw;
+        }).reduce(function (output, conversion) {
+          return output += conversion.value;
+        }, ""),
+        maskedValue: conversions.reduce(function (output, conversion) {
+          return output += conversion.value;
+        }, ""),
+        mask: mask,
+        conversions: conversions
+      };
     }
   }
 });
@@ -6302,8 +7682,8 @@ var TextInputvue_type_template_id_5087cae2_staticRenderFns = []
 
 var TextInput_component = normalizeComponent(
   components_TextInputvue_type_script_lang_js_,
-  TextInputvue_type_template_id_5087cae2_render,
-  TextInputvue_type_template_id_5087cae2_staticRenderFns,
+  TextInputvue_type_template_id_7ac69c87_render,
+  TextInputvue_type_template_id_7ac69c87_staticRenderFns,
   false,
   null,
   null,
@@ -6610,7 +7990,7 @@ var DurationInput_component = normalizeComponent(
 )
 
 /* harmony default export */ var DurationInput = (DurationInput_component.exports);
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"2001146f-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/components/NumberInput.vue?vue&type=template&id=4ac973e9&
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"3c9e19d4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/components/NumberInput.vue?vue&type=template&id=4ac973e9&
 var NumberInputvue_type_template_id_4ac973e9_render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('currency-input',_vm._g(_vm._b({ref:"input",attrs:{"value":_vm.value,"currency":_vm.currency}},'currency-input',_vm.$attrs,false),_vm.$listeners))}
 var NumberInputvue_type_template_id_4ac973e9_staticRenderFns = []
 
@@ -6666,7 +8046,7 @@ var NumberInput_component = normalizeComponent(
 )
 
 /* harmony default export */ var NumberInput = (NumberInput_component.exports);
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"2001146f-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/components/RatingInput.vue?vue&type=template&id=e777de8a&
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"3c9e19d4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/components/RatingInput.vue?vue&type=template&id=e777de8a&
 var RatingInputvue_type_template_id_e777de8a_render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('fa-rating',_vm._g(_vm._b({staticClass:"rating-input",attrs:{"rating":_vm.rating,"glyph":_vm.glyph,"active-color":_vm.activeColor,"inactive-color":_vm.inactiveColor,"item-size":_vm.itemSize,"border-width":_vm.borderWidth,"show-rating":_vm.showRating,"read-only":_vm.readonly || _vm.disabled}},'fa-rating',_vm.$attrs,false),_vm.listeners))}
 var RatingInputvue_type_template_id_e777de8a_staticRenderFns = []
 
@@ -6796,14 +8176,14 @@ var RatingInput_component = normalizeComponent(
 )
 
 /* harmony default export */ var RatingInput = (RatingInput_component.exports);
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"2001146f-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/components/SwitchInput.vue?vue&type=template&id=81b78e42&
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"3c9e19d4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/components/SwitchInput.vue?vue&type=template&id=81b78e42&
 var SwitchInputvue_type_template_id_81b78e42_render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('switches',_vm._g(_vm._b({attrs:{"value":_vm.checked,"type-bold":_vm.typeBold,"theme":_vm.theme,"color":_vm.color,"emit-on-mount":_vm.emitOnMount}},'switches',_vm.$attrs,false),_vm.listeners))}
 var SwitchInputvue_type_template_id_81b78e42_staticRenderFns = []
 
 
 // CONCATENATED MODULE: ./src/components/SwitchInput.vue?vue&type=template&id=81b78e42&
 
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"2001146f-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./node_modules/vue-switches/src/switches.vue?vue&type=template&id=8e4870fc&
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"3c9e19d4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./node_modules/vue-switches/src/switches.vue?vue&type=template&id=8e4870fc&
 var switchesvue_type_template_id_8e4870fc_render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('label',{class:_vm.classObject},[(_vm.shouldShowLabel)?_c('span',{staticClass:"vue-switcher__label"},[(_vm.label)?_c('span',{domProps:{"textContent":_vm._s(_vm.label)}}):_vm._e(),(!_vm.label && _vm.value)?_c('span',{domProps:{"textContent":_vm._s(_vm.textEnabled)}}):_vm._e(),(!_vm.label && !_vm.value)?_c('span',{domProps:{"textContent":_vm._s(_vm.textDisabled)}}):_vm._e()]):_vm._e(),_c('input',{attrs:{"type":"checkbox","disabled":_vm.disabled},domProps:{"checked":_vm.value},on:{"change":_vm.trigger}}),_c('div')])}
 var switchesvue_type_template_id_8e4870fc_staticRenderFns = []
 
@@ -7008,12 +8388,15 @@ var SwitchInput_component = normalizeComponent(
 )
 
 /* harmony default export */ var SwitchInput = (SwitchInput_component.exports);
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"2001146f-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/components/TextAreaInput.vue?vue&type=template&id=204dd7e6&
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"3c9e19d4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/components/TextAreaInput.vue?vue&type=template&id=204dd7e6&
 var TextAreaInputvue_type_template_id_204dd7e6_render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('textarea',_vm._g(_vm._b({ref:"input",style:(_vm.computedStyles),attrs:{"autosize":_vm.autosize},domProps:{"value":_vm.text}},'textarea',_vm.$attrs,false),_vm.listeners))}
 var TextAreaInputvue_type_template_id_204dd7e6_staticRenderFns = []
 
 
 // CONCATENATED MODULE: ./src/components/TextAreaInput.vue?vue&type=template&id=204dd7e6&
+
+// EXTERNAL MODULE: ./node_modules/core-js/modules/es.array.includes.js
+var es_array_includes = __webpack_require__("caad");
 
 // EXTERNAL MODULE: ./node_modules/core-js/modules/es.string.includes.js
 var es_string_includes = __webpack_require__("2532");
@@ -7187,7 +8570,7 @@ var TextAreaInput_component = normalizeComponent(
 )
 
 /* harmony default export */ var TextAreaInput = (TextAreaInput_component.exports);
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"2001146f-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/components/TextIconInput.vue?vue&type=template&id=54540cb6&scoped=true&
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"3c9e19d4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/components/TextIconInput.vue?vue&type=template&id=54540cb6&scoped=true&
 var TextIconInputvue_type_template_id_54540cb6_scoped_true_render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',{staticClass:"text-icon-input",class:{'icon-left':_vm.prefixIcon, 'icon-right':_vm.suffixIcon}},[(_vm.prefixIcon)?_c('font-awesome-icon',{staticClass:"prefix-icon",style:({color:_vm.iconColor}),attrs:{"icon":_vm.prefixIcon},on:{"click":_vm.onPrefixIconClick}}):_vm._e(),_c('TextInput',_vm._g(_vm._b({ref:"input",class:_vm.inputClass,attrs:{"value":_vm.text}},'TextInput',_vm.$attrs,false),_vm.listeners)),(_vm.suffixIcon)?_c('font-awesome-icon',{staticClass:"suffix-icon",style:({color:_vm.iconColor}),attrs:{"icon":_vm.suffixIcon},on:{"click":_vm.onSuffixIconClick}}):_vm._e()],1)}
 var TextIconInputvue_type_template_id_54540cb6_scoped_true_staticRenderFns = []
 
@@ -7318,7 +8701,6 @@ var TextIconInput_component = normalizeComponent(
 // CONCATENATED MODULE: ./src/components/index.js
  // Dependencies
 
-
  // Inputs
 
 
@@ -7329,40 +8711,6 @@ var TextIconInput_component = normalizeComponent(
 
 
 
-external_commonjs_vue_commonjs2_vue_root_Vue_default.a.use(vue_input_facade_plugin, {
-  tokens: {
-    '#': {
-      pattern: /\d/
-    },
-    X: {
-      pattern: /[0-9a-z]/i
-    },
-    S: {
-      pattern: /[a-z]/i
-    },
-    A: {
-      pattern: /[a-z]/i,
-      transform: function transform(v) {
-        return v.toLocaleUpperCase();
-      }
-    },
-    a: {
-      pattern: /[a-z]/i,
-      transform: function transform(v) {
-        return v.toLocaleLowerCase();
-      }
-    },
-    '\\': {
-      escape: true
-    },
-    F: {
-      pattern: /[0-9A-F]/i,
-      transform: function transform(v) {
-        return v.toLocaleUpperCase();
-      }
-    }
-  }
-});
 external_commonjs_vue_commonjs2_vue_root_Vue_default.a.use(vue_currency_input_esm);
 var Components = {
   DateInput: DateInput,
@@ -7530,6 +8878,16 @@ module.exports = NATIVE_SYMBOL
   && !Symbol.sham
   // eslint-disable-next-line no-undef
   && typeof Symbol.iterator == 'symbol';
+
+
+/***/ }),
+
+/***/ "fea9":
+/***/ (function(module, exports, __webpack_require__) {
+
+var global = __webpack_require__("da84");
+
+module.exports = global.Promise;
 
 
 /***/ })
