@@ -287,10 +287,12 @@ export default {
       var maskIndex = 0;
       var valueIndex = 0;
       var conversions = [];
-      while (maskIndex < mask.length && valueIndex < value.length) {
-        var cMask = mask[maskIndex];
+      const safeMask = mask || ""
+      const saveValue = value || ""
+      while (maskIndex < safeMask.length && valueIndex < saveValue.length) {
+        var cMask = safeMask[maskIndex];
         var masker = tokens[cMask];
-        var cValue = value[valueIndex];
+        var cValue = saveValue[valueIndex];
         if (masker && !masker.escape) {
           if (masker.pattern.test(cValue)) {
             const transformedValue = masker.transform
@@ -308,7 +310,7 @@ export default {
         } else {
           if (masker && masker.escape) {
             maskIndex++; // take the next mask char and treat it as char
-            cMask = mask[maskIndex] || ""; // if not char after the escape
+            cMask = safeMask[maskIndex] || ""; // if not char after the escape
           }
           let conversion = {
             value: cMask,
@@ -328,8 +330,8 @@ export default {
 
       // fix mask that ends with a char: (#)
       let restConversions = [];
-      while (maskIndex < mask.length) {
-        var cMask2 = mask[maskIndex];
+      while (maskIndex < safeMask.length) {
+        var cMask2 = safeMask[maskIndex];
         let masker2 = tokens[cMask2];
         if (masker2 && !masker2.escape) {
           restConversions = [];
@@ -337,7 +339,7 @@ export default {
         } else {
           if (masker2 && masker2.escape) {
             maskIndex++; // take the next mask char and treat it as char
-            cMask2 = mask[maskIndex] || ""; // if not char after the escape
+            cMask2 = safeMask[maskIndex] || ""; // if not char after the escape
           }
         }
         if (cMask2)
@@ -352,7 +354,7 @@ export default {
       conversions = [...conversions, ...restConversions];
 
       return {
-        input: value,
+        input: saveValue,
         rawValue: conversions
           .filter((conversion) => conversion.isRaw)
           .reduce((output, conversion) => (output += conversion.value), ""),
@@ -360,7 +362,7 @@ export default {
           (output, conversion) => (output += conversion.value),
           ""
         ),
-        mask,
+        mask: safeMask,
         conversions,
       };
     },

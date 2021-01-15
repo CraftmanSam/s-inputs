@@ -49,6 +49,10 @@ export default {
             mask: "aa--aa",
             value: "abcd",
           }),
+          new Test("null value and with mask", {
+            mask: "***",
+            value: null
+          })
         ]),
         new Section("masked", [
           new Test("on", {
